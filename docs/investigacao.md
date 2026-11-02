@@ -221,3 +221,93 @@ fora: `id_municipio_6`, `id_municipio_tse`, `id_municipio_rf`, `id_municipio_bcb
 
 `__TABLES__` desse dataset dá **403** para o nosso projeto, ao contrário do dataset de
 alfabetização. O tamanho do diretório sai da primeira carga da Bronze.
+
+## 10. Validação cruzada: microdados × taxa publicada
+
+**Contexto.** `gold.validacao_microdado` recalcula a taxa a partir de
+`silver.alunos_avaliados`, com a fórmula `100 × Σ(peso × alfabetizado) / Σ peso`, e
+compara com a taxa publicada. Na 1ª execução da Gold (`20261102T230818Z_2d4702`), a regra
+bloqueante `validacao_microdado_match_uf` reprovou com 97,9%. A staging ficou disponível
+para a investigação, feita com as consultas `validacao_*` (execução
+`20261102T231309Z_a99822`).
+
+**Brasil, rede pública:**
+
+| ano | UFs no recálculo | avaliados | recalculada | oficial | diferença |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 2023 | 24 | 1.502.809 | 57,46 | 55,9 | +1,56 |
+| 2024 | 27 | 1.851.828 | **59,20** | **59,2** | **0,00** |
+
+**Conclusão 1 (confirmado): em 2024 a pipeline reproduz a taxa nacional oficial.** Nas
+UFs de 2024, a maior diferença é de 0,09 p.p. (RS), e a maioria fica entre 0,00 e 0,01,
+que é o arredondamento. A convergência confirma de ponta a ponta:
+- a Bronze copiou os dados completos;
+- os códigos de presença e caderno foram traduzidos certo;
+- o denominador são só os avaliados;
+- o peso amostral está correto;
+- a rede pública é a soma de estadual e municipal.
+
+A regra bloqueante `validacao_microdado_brasil_2024` (tolerância de 0,05 p.p.) passa a
+proteger esse resultado.
+
+**Conclusão 2 (confirmado): São Paulo 2023 não está nos microdados da fonte.** As 3 linhas
+de UF sem par são SP 2023 (redes estadual, municipal e pública). Das 802 de município,
+801 também são de SP 2023 (627 municipal, 95 estadual, 79 pública), e 1 é da PB 2024,
+rede estadual. O total de registros confirma: `alunos` tem 1,75 milhão de linhas em 2023
+e 2,12 milhões em 2024. Só SP tem 395 mil avaliados em 2024.
+
+**Conclusão 3 (estimativa): a ausência de SP explica a maior parte da diferença nacional
+de 2023.** A taxa pública de SP em 2023 (51,91) fica abaixo da média recalculada sem SP
+(57,46), e SP é a UF com mais alunos. Sem ela, a média sobe. Usando o peso de SP em 2024 (443.733) como aproximação
+para 2023, a taxa recalculada com SP seria
+`(57,46 × 1.743.618 + 51,91 × 443.733) / 2.187.351 ≈ 56,3`. Isso fica a 0,4 p.p. da
+oficial, contra 1,56 p.p. sem SP. Os 0,4 p.p. restantes não são explicáveis com este
+dataset: o peso real de SP 2023 é desconhecido. A coluna `n_ufs_com_microdado` deixa
+explícito que o Brasil 2023 recalculado é sem SP.
+
+**Conclusão 4 (confirmado): em MS 2023 todo peso é 1.** A soma dos pesos (37.113,0) é
+igual ao número de avaliados, ou seja, os microdados de MS 2023 não trazem peso amostral.
+É a explicação provável da diferença de +0,31 p.p. em MS 2023. BA 2024 também tem peso 1
+(104.069,0), mas bate com a publicada (0,00), o que é compatível com uma avaliação
+censitária sem correção amostral.
+
+**Outras diferenças em UF** (todas de 2023, exceto PB): MT estadual +1,49 p.p. (2.818
+avaliados), PB 2024 estadual +0,70, SE −0,26 em todas as redes. No total, 98,6% das
+linhas UF × ano × rede ficam a até 0,5 p.p.
+
+**Município.** A mediana da diferença absoluta é 0,00 em todos os anos e redes. O p95 vai
+de 0,04 (2024) a 0,16 (2023, estadual). O máximo é 36,06 p.p., em 2023 na rede
+municipal (consulta `validacao_municipio_maiores_diferencas`).
+
+**Conclusão 5 (confirmado): em dois municípios, o erro está na tabela `municipio` da
+fonte.** Para os dois maiores casos de §2, os microdados e a tabela de meta concordam
+entre si e discordam da tabela de resultado:
+
+| ano | id_municipio | UF | avaliados | `municipio` | recalculada (microdados) | `meta_alfabetizacao_municipio` |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| 2023 | 2305100 | CE | 71 | 91,67 | **55,61** | **55,6** |
+| 2023 | 2304905 | CE | 118 | 99,15 | **83,11** | **83,1** |
+
+São duas fontes independentes: o microdado aluno a aluno e a publicação da meta. As duas
+apontam o mesmo valor, então `municipio.taxa_alfabetizacao` está errada nesses dois
+casos. O terceiro caso de §2 (5106752, MT, 68,0 contra 65,94) não está entre as 15
+maiores diferenças.
+
+As demais diferenças grandes têm poucos avaliados (17 a 429). Elas se concentram em AM,
+onde a tabela de meta não traz taxa de referência, e em RS 2024, com municípios de 17 e
+18 avaliados, em que um aluno muda a taxa em vários pontos.
+
+**Decisão.** A Gold mantém o resultado publicado (`municipio`) como indicador oficial,
+porque é o número que o INEP divulga. A divergência fica visível em
+`gold.validacao_microdado.diferenca_pp` e em `gold.indicador_municipio.taxa_referencia_meta`.
+Na fase 3, quem usar `features_ml` deve tratar 2305100 e 2304905 em 2023 como suspeitos.
+**Planejado:** uma coluna de alerta em `indicador_municipio` para resultado que diverge
+dos microdados.
+
+**Decisões nas regras** (limiar = valor medido, para que piora reprove):
+- `validacao_microdado_match_uf`: no máximo 3 linhas de UF publicadas sem microdado
+  (bloqueante). Uma chave quebrada levaria a contagem para perto de 145.
+- `validacao_microdado_match_municipio`: no máximo 802 (passou a ser bloqueante).
+- `validacao_microdado_brasil_2024`: diferença de no máximo 0,05 p.p. (bloqueante).
+- `validacao_microdado_brasil_2023`: no máximo 1,56 (informativa).
+- `validacao_microdado_uf_maior_diferenca`: no máximo 1,5 (informativa).

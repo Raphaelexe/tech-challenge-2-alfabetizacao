@@ -103,14 +103,14 @@ def test_renderizar_silver_sem_carga_falha_com_mensagem_clara():
 
 # --------------------------------------------------------------- regras.yaml
 
-def test_regras_cobrem_toda_tabela_silver_e_so_elas():
-    tabelas = {e.tabela for e in SILVER}
+def test_regras_cobrem_toda_tabela_silver_e_gold_e_so_elas():
+    tabelas = {e.tabela for e in SILVER} | {e.tabela for e in CAMADAS["gold"]}
     assert {r.tabela for r in REGRAS} == tabelas
 
 
 @pytest.mark.parametrize("regra", REGRAS, ids=lambda r: r.nome)
 def test_regra_so_usa_marcadores_conhecidos(regra):
-    permitidos = {"tabela", "bronze", "silver"} | {f"carga_{t}" for t in BRONZE_TABELAS}
+    permitidos = {"tabela", "bronze", "silver", "gold"} | {f"carga_{t}" for t in BRONZE_TABELAS}
     assert campos(regra.sql) <= permitidos
 
 
@@ -186,8 +186,8 @@ class ClienteSilver:
             linhas = [{"tabela": t, "id_execucao": i} for t, i in CARGAS.items()]
             return ResultadoQuery("job-c", 1, 1, 1, None, 0.1, linhas)
         if sql.startswith("SELECT\n  ("):
-            nomes = re.findall(r"\) AS (\w+),?$", sql, re.M)
             regras = {r.nome: r for r in REGRAS}
+            nomes = [n for n in regras if re.search(rf"\) AS {n},?$", sql, re.M)]
             linha = {n: self.reprovar.get(n, valor_que_aprova(regras[n])) for n in nomes}
             return ResultadoQuery("job-r", 1, 1, 1, None, 0.1, [linha])
         return ResultadoQuery("job-s", 1, 1, 1, None, 0.1)
@@ -215,7 +215,8 @@ def test_silver_completa_publica_cada_tabela_depois_das_regras():
     assert all(e["status"] == "sucesso" and e["linhas_saida"] == 42 for e in execucoes)
     assert cliente.copias[0] == ("meu-projeto.silver.dicionario_stg", "meu-projeto.silver.dicionario")
     assert len(cliente.copias) == len(SILVER) == len(cliente.removidas)
-    assert len(qualidade) == len(REGRAS) and all(q["status"] == "aprovada" for q in qualidade)
+    regras_silver = [r for r in REGRAS if r.tabela in {e.tabela for e in SILVER}]
+    assert len(qualidade) == len(regras_silver) and all(q["status"] == "aprovada" for q in qualidade)
     assert sum("REGEXP_EXTRACT(etapa" in q for q in cliente.sqls) == 1  # cargas lidas uma vez
 
 

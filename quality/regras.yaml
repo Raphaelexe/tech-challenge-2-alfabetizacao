@@ -460,3 +460,308 @@ regras:
     sql: >-
       SELECT SAFE_DIVIDE((SELECT COUNT(*) FROM {tabela}),
                          (SELECT COUNT(*) FROM {bronze}.alunos WHERE {carga_alunos}))
+
+  # =================================================================== GOLD
+  # Status em 4 estados. "Inconsistente" = estado que não corresponde aos campos:
+  # atingiu/nao_atingiu sem taxa ou sem meta, sem_meta com meta, sem_resultado com taxa.
+
+  # -------------------------------------------------------- indicador_municipio
+  - nome: indicador_municipio_chave_duplicada
+    tabela: indicador_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Uma linha por (ano, id_municipio, rede_padrao).
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s|%s', ano, id_municipio, rede_padrao)) FROM {tabela}
+
+  - nome: indicador_municipio_status_inconsistente
+    tabela: indicador_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Meta ausente e resultado ausente nunca podem virar 'nao_atingiu'.
+    sql: >-
+      SELECT COUNTIF(
+        status_meta NOT IN ('atingiu', 'nao_atingiu', 'sem_meta', 'sem_resultado')
+        OR (status_meta IN ('atingiu', 'nao_atingiu') AND (taxa_alfabetizacao IS NULL OR meta_pactuada_ano IS NULL))
+        OR (status_meta = 'sem_meta' AND meta_pactuada_ano IS NOT NULL)
+        OR (status_meta = 'sem_resultado' AND taxa_alfabetizacao IS NOT NULL))
+      FROM {tabela}
+
+  - nome: indicador_municipio_match_meta_resultado
+    tabela: indicador_municipio
+    severidade: bloqueante
+    operador: ">="
+    limiar: 0.99
+    descricao: >-
+      Taxa de correspondência do join meta_municipio -> resultado_municipio (mesmo ano e
+      rede), no pior ano. Medido: 99,07% em 2023 e 100% em 2024 (docs/investigacao.md §3).
+      Chave em formato diferente derrubaria o valor para perto de 0.
+    sql: >-
+      SELECT MIN(cobertura) FROM (
+        SELECT ano, SAFE_DIVIDE(COUNTIF(tem_resultado), COUNT(*)) AS cobertura
+        FROM {tabela} WHERE tem_meta GROUP BY ano)
+
+  - nome: indicador_municipio_sem_uf
+    tabela: indicador_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Toda linha precisa de UF (join com o diretório).
+    sql: SELECT COUNTIF(sigla_uf IS NULL) FROM {tabela}
+
+  - nome: indicador_municipio_divergencia_taxa_meta
+    tabela: indicador_municipio
+    severidade: informativa
+    operador: "<="
+    limiar: 3
+    descricao: >-
+      Taxa da tabela de meta a mais de 0,06 p.p. do resultado oficial. Medido: 3
+      municípios em 2023 (2305100, 2304905, 5106752; §2). Reprova só se aumentar.
+    sql: SELECT COUNTIF(ABS(taxa_alfabetizacao - taxa_referencia_meta) > 0.06) FROM {tabela}
+
+  # --------------------------------------------------------------- indicador_uf
+  - nome: indicador_uf_chave_duplicada
+    tabela: indicador_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Uma linha por (ano, sigla_uf, rede_padrao).
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s|%s', ano, sigla_uf, rede_padrao)) FROM {tabela}
+
+  - nome: indicador_uf_status_inconsistente
+    tabela: indicador_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Meta ausente e resultado ausente nunca podem virar 'nao_atingiu'.
+    sql: >-
+      SELECT COUNTIF(
+        status_meta NOT IN ('atingiu', 'nao_atingiu', 'sem_meta', 'sem_resultado')
+        OR (status_meta IN ('atingiu', 'nao_atingiu') AND (taxa_alfabetizacao IS NULL OR meta_pactuada_ano IS NULL))
+        OR (status_meta = 'sem_meta' AND meta_pactuada_ano IS NOT NULL)
+        OR (status_meta = 'sem_resultado' AND taxa_alfabetizacao IS NOT NULL))
+      FROM {tabela}
+
+  - nome: indicador_uf_cobertura_publica_2023
+    tabela: indicador_uf
+    severidade: bloqueante
+    operador: ">="
+    limiar: 24
+    descricao: UFs com resultado na rede pública em 2023. Medido 24 (faltam AC, DF e RR; §4).
+    sql: SELECT COUNTIF(ano = 2023 AND rede_padrao = 'publica' AND tem_resultado) FROM {tabela}
+
+  - nome: indicador_uf_cobertura_publica_2024
+    tabela: indicador_uf
+    severidade: bloqueante
+    operador: ">="
+    limiar: 26
+    descricao: UFs com resultado na rede pública em 2024. Medido 25 em resultado_uf + DF via Brasília (falta RR; §4).
+    sql: SELECT COUNTIF(ano = 2024 AND rede_padrao = 'publica' AND tem_resultado) FROM {tabela}
+
+  - nome: indicador_uf_cobertura_publica_2025
+    tabela: indicador_uf
+    severidade: informativa
+    operador: ">="
+    limiar: 27
+    descricao: UFs com resultado de 2025 (só na tabela de meta). Medido 27 (20261102T230818Z_2d4702).
+    sql: SELECT COUNTIF(ano = 2025 AND rede_padrao = 'publica' AND tem_resultado) FROM {tabela}
+
+  - nome: indicador_uf_resultado_via_municipio
+    tabela: indicador_uf
+    severidade: informativa
+    operador: "<="
+    limiar: 2
+    descricao: Linhas de UF preenchidas pelo único município da UF (esperado DF 2024, redes estadual e pública).
+    sql: SELECT COUNTIF(fonte_resultado = 'resultado_municipio') FROM {tabela}
+
+  - nome: indicador_uf_sem_regiao
+    tabela: indicador_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Toda UF precisa de nome e região (join com o diretório).
+    sql: SELECT COUNTIF(nome_uf IS NULL OR regiao IS NULL) FROM {tabela}
+
+  # -------------------------------------------------------- validacao_microdado
+  - nome: validacao_microdado_chave_duplicada
+    tabela: validacao_microdado
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Uma linha por (nivel, ano, rede, UF, município).
+    sql: >-
+      SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%s|%d|%s|%s|%s', nivel, ano, rede_padrao,
+        IFNULL(sigla_uf, 'BR'), IFNULL(id_municipio, '-')))
+      FROM {tabela}
+
+  - nome: validacao_microdado_taxa_fora_0_100
+    tabela: validacao_microdado
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Taxa recalculada é percentual.
+    sql: SELECT COUNTIF(taxa_recalculada < 0 OR taxa_recalculada > 100) FROM {tabela}
+
+  - nome: validacao_microdado_match_uf
+    tabela: validacao_microdado
+    severidade: bloqueante
+    operador: "<="
+    limiar: 3
+    descricao: >-
+      Linhas de UF publicadas sem microdado (falha do join resultado_uf -> microdados).
+      Medido: 3 de 145 (97,9%), todas de SP 2023, que não está em alunos na fonte
+      (docs/investigacao.md §10). Limiar em contagem: qualquer linha a mais reprova;
+      uma chave quebrada levaria a contagem para perto de 145.
+    sql: >-
+      SELECT COUNTIF(NOT tem_microdado) FROM {tabela}
+      WHERE nivel = 'uf' AND tem_publicada
+
+  - nome: validacao_microdado_match_municipio
+    tabela: validacao_microdado
+    severidade: bloqueante
+    operador: "<="
+    limiar: 802
+    descricao: >-
+      Linhas de município publicadas sem microdado. Medido: 802 de 23.995 (96,7%): 801 de
+      SP 2023 e 1 da PB 2024, rede estadual (§10).
+    sql: >-
+      SELECT COUNTIF(NOT tem_microdado) FROM {tabela}
+      WHERE nivel = 'municipio' AND tem_publicada
+
+  - nome: validacao_microdado_uf_concordancia
+    tabela: validacao_microdado
+    severidade: informativa
+    operador: ">="
+    limiar: 0.95
+    descricao: Proporção de UF × ano × rede em que a taxa recalculada fica a até 0,5 p.p. da publicada.
+    sql: >-
+      SELECT SAFE_DIVIDE(COUNTIF(ABS(diferenca_pp) <= 0.5), COUNTIF(diferenca_pp IS NOT NULL))
+      FROM {tabela} WHERE nivel = 'uf'
+
+  - nome: validacao_microdado_uf_maior_diferenca
+    tabela: validacao_microdado
+    severidade: informativa
+    operador: "<="
+    limiar: 1.5
+    descricao: >-
+      Maior diferença absoluta (p.p.) entre recalculada e publicada no nível UF. Medido:
+      1,49 (MT 2023, rede estadual, 2.818 avaliados); em 2024, no máximo 0,70 (PB estadual).
+    sql: SELECT MAX(ABS(diferenca_pp)) FROM {tabela} WHERE nivel = 'uf'
+
+  - nome: validacao_microdado_brasil_2024
+    tabela: validacao_microdado
+    severidade: bloqueante
+    operador: "<="
+    limiar: 0.05
+    descricao: >-
+      A taxa nacional de 2024 (rede pública), recalculada dos microdados com peso amostral
+      e só sobre avaliados, precisa bater com a oficial (59,2). Medido: 59,20, diferença 0,00.
+      É a verificação de ponta a ponta da pipeline: um erro de filtro, peso ou denominador
+      em qualquer camada muda este número.
+    sql: >-
+      SELECT ABS(diferenca_pp) FROM {tabela}
+      WHERE nivel = 'brasil' AND ano = 2024 AND rede_padrao = 'publica'
+
+  - nome: validacao_microdado_brasil_2023
+    tabela: validacao_microdado
+    severidade: informativa
+    operador: "<="
+    limiar: 1.56
+    descricao: >-
+      Diferença nacional de 2023. Medido: 1,56 p.p. (57,46 recalculada sem SP contra
+      55,9 oficial). SP explica cerca de 1,1 p.p. (§10).
+    sql: >-
+      SELECT ABS(diferenca_pp) FROM {tabela}
+      WHERE nivel = 'brasil' AND ano = 2023 AND rede_padrao = 'publica'
+
+  # ------------------------------------------------------------ indicador_brasil
+  - nome: indicador_brasil_cobertura
+    tabela: indicador_brasil
+    severidade: bloqueante
+    operador: ">="
+    limiar: 3
+    descricao: Três publicações nacionais (2023, 2024, 2025).
+    sql: SELECT COUNTIF(tem_resultado) FROM {tabela}
+
+  - nome: indicador_brasil_status_inconsistente
+    tabela: indicador_brasil
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Meta ausente e resultado ausente nunca podem virar 'nao_atingiu'.
+    sql: >-
+      SELECT COUNTIF(
+        status_meta NOT IN ('atingiu', 'nao_atingiu', 'sem_meta', 'sem_resultado')
+        OR (status_meta IN ('atingiu', 'nao_atingiu') AND (taxa_alfabetizacao IS NULL OR meta_pactuada_ano IS NULL))
+        OR (status_meta = 'sem_meta' AND meta_pactuada_ano IS NOT NULL)
+        OR (status_meta = 'sem_resultado' AND taxa_alfabetizacao IS NOT NULL))
+      FROM {tabela}
+
+  - nome: indicador_brasil_chave_duplicada
+    tabela: indicador_brasil
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Uma linha por (ano, rede_padrao).
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s', ano, rede_padrao)) FROM {tabela}
+
+  # ----------------------------------------------------------- evolucao_temporal
+  - nome: evolucao_temporal_chave_duplicada
+    tabela: evolucao_temporal
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Uma linha por (nivel, território, rede, ano).
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%s|%s|%s|%d', nivel, territorio, rede_padrao, ano)) FROM {tabela}
+
+  - nome: evolucao_temporal_variacao_fora_da_faixa
+    tabela: evolucao_temporal
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Variação entre duas taxas percentuais fica entre -100 e 100 p.p.
+    sql: SELECT COUNTIF(ABS(variacao_pp) > 100) FROM {tabela}
+
+  # ----------------------------------------------------------------- features_ml
+  - nome: features_ml_chave_duplicada
+    tabela: features_ml
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Uma linha por (ano_base, id_municipio).
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s', ano_base, id_municipio)) FROM {tabela}
+
+  - nome: features_ml_cobertura
+    tabela: features_ml
+    severidade: bloqueante
+    operador: ">="
+    limiar: 10000
+    descricao: Rede municipal tem 5.448 municípios em cada ano (2023 e 2024; §8).
+    sql: SELECT COUNT(*) FROM {tabela}
+
+  - nome: features_ml_coluna_com_vazamento
+    tabela: features_ml
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: >-
+      Nenhuma coluna derivada do alvo (status da meta, distância até a meta, faixa da
+      taxa) pode estar na base de features.
+    sql: >-
+      SELECT COUNT(*) FROM {gold}.INFORMATION_SCHEMA.COLUMNS
+      WHERE table_name = 'features_ml_stg'
+        AND REGEXP_CONTAINS(column_name, r'status|distancia|faixa')
+
+  - nome: features_ml_sem_alvo_antes_do_ultimo_ano
+    tabela: features_ml
+    severidade: informativa
+    operador: "<="
+    limiar: 52
+    descricao: >-
+      Municípios com resultado em t e sem resultado em t+1 (não servem para treino).
+      Medido: 52 (execução 20261102T232157Z_b0292a). Reprova só se aumentar.
+    sql: >-
+      SELECT COUNTIF(alvo_taxa_alfabetizacao_proximo_ano IS NULL
+                     AND ano_base < (SELECT MAX(ano_base) FROM {tabela}))
+      FROM {tabela}

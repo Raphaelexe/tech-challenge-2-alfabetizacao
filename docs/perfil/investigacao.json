@@ -899,6 +899,1037 @@
       "data_type": "STRING"
     }
   ],
+  "validacao_uf_sem_microdado": [
+    {
+      "ano": 2023,
+      "sigla_uf": "SP",
+      "rede_padrao": "estadual",
+      "taxa_publicada": 53.8
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SP",
+      "rede_padrao": "municipal",
+      "taxa_publicada": 51.28
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SP",
+      "rede_padrao": "publica",
+      "taxa_publicada": 51.91
+    }
+  ],
+  "validacao_municipio_sem_microdado": [
+    {
+      "ano": 2023,
+      "sigla_uf": "SP",
+      "rede_padrao": "municipal",
+      "publicadas_sem_microdado": 627
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SP",
+      "rede_padrao": "estadual",
+      "publicadas_sem_microdado": 95
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SP",
+      "rede_padrao": "publica",
+      "publicadas_sem_microdado": 79
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "PB",
+      "rede_padrao": "estadual",
+      "publicadas_sem_microdado": 1
+    }
+  ],
+  "validacao_municipio_sem_microdado_total": [
+    {
+      "ano": 2023,
+      "rede_padrao": "estadual",
+      "publicadas": 1149,
+      "sem_microdado": 95,
+      "microdado_sem_publicada": 5
+    },
+    {
+      "ano": 2023,
+      "rede_padrao": "municipal",
+      "publicadas": 5448,
+      "sem_microdado": 627,
+      "microdado_sem_publicada": 1
+    },
+    {
+      "ano": 2023,
+      "rede_padrao": "publica",
+      "publicadas": 4950,
+      "sem_microdado": 79,
+      "microdado_sem_publicada": 0
+    },
+    {
+      "ano": 2023,
+      "rede_padrao": "total",
+      "publicadas": 0,
+      "sem_microdado": 0,
+      "microdado_sem_publicada": 4871
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "estadual",
+      "publicadas": 1086,
+      "sem_microdado": 1,
+      "microdado_sem_publicada": 0
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "municipal",
+      "publicadas": 5448,
+      "sem_microdado": 0,
+      "microdado_sem_publicada": 2
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "privada",
+      "publicadas": 0,
+      "sem_microdado": 0,
+      "microdado_sem_publicada": 1
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "publica",
+      "publicadas": 5516,
+      "sem_microdado": 0,
+      "microdado_sem_publicada": 1
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "total",
+      "publicadas": 398,
+      "sem_microdado": 0,
+      "microdado_sem_publicada": 5119
+    }
+  ],
+  "validacao_brasil": [
+    {
+      "ano": 2023,
+      "rede_padrao": "estadual",
+      "n_avaliados": 131522,
+      "soma_pesos": 155223.28014800022,
+      "taxa_recalculada": 60.09,
+      "taxa_publicada": null,
+      "diferenca_pp": null
+    },
+    {
+      "ano": 2023,
+      "rede_padrao": "municipal",
+      "n_avaliados": 1371287,
+      "soma_pesos": 1588394.8579563976,
+      "taxa_recalculada": 57.21,
+      "taxa_publicada": null,
+      "diferenca_pp": null
+    },
+    {
+      "ano": 2023,
+      "rede_padrao": "publica",
+      "n_avaliados": 1502809,
+      "soma_pesos": 1743618.1381043952,
+      "taxa_recalculada": 57.46,
+      "taxa_publicada": 55.9,
+      "diferenca_pp": 1.56
+    },
+    {
+      "ano": 2023,
+      "rede_padrao": "total",
+      "n_avaliados": 1502809,
+      "soma_pesos": 1743618.1381043952,
+      "taxa_recalculada": 57.46,
+      "taxa_publicada": null,
+      "diferenca_pp": null
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "estadual",
+      "n_avaliados": 241074,
+      "soma_pesos": 280467.8830514043,
+      "taxa_recalculada": 61.65,
+      "taxa_publicada": null,
+      "diferenca_pp": null
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "municipal",
+      "n_avaliados": 1610754,
+      "soma_pesos": 1828682.022172806,
+      "taxa_recalculada": 58.82,
+      "taxa_publicada": null,
+      "diferenca_pp": null
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "privada",
+      "n_avaliados": 24,
+      "soma_pesos": 24.959999999999987,
+      "taxa_recalculada": 66.67,
+      "taxa_publicada": null,
+      "diferenca_pp": null
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "publica",
+      "n_avaliados": 1851828,
+      "soma_pesos": 2109149.9052242152,
+      "taxa_recalculada": 59.2,
+      "taxa_publicada": 59.2,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "total",
+      "n_avaliados": 1851852,
+      "soma_pesos": 2109174.865224215,
+      "taxa_recalculada": 59.2,
+      "taxa_publicada": null,
+      "diferenca_pp": null
+    },
+    {
+      "ano": 2025,
+      "rede_padrao": "publica",
+      "n_avaliados": null,
+      "soma_pesos": null,
+      "taxa_recalculada": null,
+      "taxa_publicada": 66.0,
+      "diferenca_pp": null
+    }
+  ],
+  "validacao_uf_maiores_diferencas": [
+    {
+      "ano": 2023,
+      "sigla_uf": "MT",
+      "rede_padrao": "estadual",
+      "n_avaliados": 2818,
+      "taxa_recalculada": 49.51,
+      "taxa_publicada": 48.02,
+      "diferenca_pp": 1.49
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "PB",
+      "rede_padrao": "estadual",
+      "n_avaliados": 1180,
+      "taxa_recalculada": 55.67,
+      "taxa_publicada": 54.97,
+      "diferenca_pp": 0.7
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "MS",
+      "rede_padrao": "municipal",
+      "n_avaliados": 36442,
+      "taxa_recalculada": 47.85,
+      "taxa_publicada": 47.53,
+      "diferenca_pp": 0.32
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "MS",
+      "rede_padrao": "publica",
+      "n_avaliados": 37113,
+      "taxa_recalculada": 47.76,
+      "taxa_publicada": 47.45,
+      "diferenca_pp": 0.31
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SE",
+      "rede_padrao": "publica",
+      "n_avaliados": 18634,
+      "taxa_recalculada": 31.04,
+      "taxa_publicada": 31.3,
+      "diferenca_pp": -0.26
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SE",
+      "rede_padrao": "municipal",
+      "n_avaliados": 15768,
+      "taxa_recalculada": 30.31,
+      "taxa_publicada": 30.57,
+      "diferenca_pp": -0.26
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SE",
+      "rede_padrao": "estadual",
+      "n_avaliados": 2866,
+      "taxa_recalculada": 35.06,
+      "taxa_publicada": 35.31,
+      "diferenca_pp": -0.25
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "MS",
+      "rede_padrao": "estadual",
+      "n_avaliados": 671,
+      "taxa_recalculada": 43.07,
+      "taxa_publicada": 42.9,
+      "diferenca_pp": 0.17
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "RS",
+      "rede_padrao": "publica",
+      "n_avaliados": 89562,
+      "taxa_recalculada": 44.76,
+      "taxa_publicada": 44.67,
+      "diferenca_pp": 0.09
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "RS",
+      "rede_padrao": "estadual",
+      "n_avaliados": 28509,
+      "taxa_recalculada": 45.72,
+      "taxa_publicada": 45.63,
+      "diferenca_pp": 0.09
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "RS",
+      "rede_padrao": "municipal",
+      "n_avaliados": 61053,
+      "taxa_recalculada": 44.31,
+      "taxa_publicada": 44.23,
+      "diferenca_pp": 0.08
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "MT",
+      "rede_padrao": "publica",
+      "n_avaliados": 47696,
+      "taxa_recalculada": 55.07,
+      "taxa_publicada": 55.03,
+      "diferenca_pp": 0.04
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "PB",
+      "rede_padrao": "municipal",
+      "n_avaliados": 29824,
+      "taxa_recalculada": 55.98,
+      "taxa_publicada": 56.01,
+      "diferenca_pp": -0.03
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "MA",
+      "rede_padrao": "estadual",
+      "n_avaliados": 127,
+      "taxa_recalculada": 77.55,
+      "taxa_publicada": 77.57,
+      "diferenca_pp": -0.02
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "ES",
+      "rede_padrao": "municipal",
+      "n_avaliados": 40525,
+      "taxa_recalculada": 70.92,
+      "taxa_publicada": 70.9,
+      "diferenca_pp": 0.02
+    }
+  ],
+  "validacao_uf_publica": [
+    {
+      "ano": 2023,
+      "sigla_uf": "AL",
+      "n_avaliados": 32789,
+      "soma_pesos": 35502.99998020001,
+      "taxa_recalculada": 43.88,
+      "taxa_publicada": 43.88,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "AM",
+      "n_avaliados": 48010,
+      "soma_pesos": 63055.00003639994,
+      "taxa_recalculada": 52.2,
+      "taxa_publicada": 52.2,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "AP",
+      "n_avaliados": 11075,
+      "soma_pesos": 12349.000002000075,
+      "taxa_recalculada": 41.56,
+      "taxa_publicada": 41.56,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "BA",
+      "n_avaliados": 116412,
+      "soma_pesos": 137724.00021970013,
+      "taxa_recalculada": 36.78,
+      "taxa_publicada": 36.78,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "CE",
+      "n_avaliados": 95549,
+      "soma_pesos": 100348.99999749978,
+      "taxa_recalculada": 84.46,
+      "taxa_publicada": 84.46,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "ES",
+      "n_avaliados": 44628,
+      "soma_pesos": 50481.99998900001,
+      "taxa_recalculada": 67.93,
+      "taxa_publicada": 67.93,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "GO",
+      "n_avaliados": 72868,
+      "soma_pesos": 83738.94354960001,
+      "taxa_recalculada": 66.72,
+      "taxa_publicada": 66.74,
+      "diferenca_pp": -0.02
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "MA",
+      "n_avaliados": 66793,
+      "soma_pesos": 74957.99996789994,
+      "taxa_recalculada": 56.43,
+      "taxa_publicada": 56.43,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "MG",
+      "n_avaliados": 188236,
+      "soma_pesos": 210106.99877560028,
+      "taxa_recalculada": 59.81,
+      "taxa_publicada": 59.81,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "MS",
+      "n_avaliados": 37113,
+      "soma_pesos": 37113.0,
+      "taxa_recalculada": 47.76,
+      "taxa_publicada": 47.45,
+      "diferenca_pp": 0.31
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "MT",
+      "n_avaliados": 47696,
+      "soma_pesos": 54526.085921600075,
+      "taxa_recalculada": 55.07,
+      "taxa_publicada": 55.03,
+      "diferenca_pp": 0.04
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "PA",
+      "n_avaliados": 84557,
+      "soma_pesos": 104971.99996249999,
+      "taxa_recalculada": 48.38,
+      "taxa_publicada": 48.38,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "PB",
+      "n_avaliados": 33714,
+      "soma_pesos": 38215.0000243,
+      "taxa_recalculada": 51.12,
+      "taxa_publicada": 51.12,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "PE",
+      "n_avaliados": 81148,
+      "soma_pesos": 88271.00006280014,
+      "taxa_recalculada": 58.95,
+      "taxa_publicada": 58.95,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "PI",
+      "n_avaliados": 33067,
+      "soma_pesos": 35414.99991149999,
+      "taxa_recalculada": 52.48,
+      "taxa_publicada": 52.48,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "PR",
+      "n_avaliados": 119385,
+      "soma_pesos": 138532.00012359995,
+      "taxa_recalculada": 73.12,
+      "taxa_publicada": 73.12,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "RJ",
+      "n_avaliados": 129935,
+      "soma_pesos": 159996.9996443012,
+      "taxa_recalculada": 52.13,
+      "taxa_publicada": 52.13,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "RN",
+      "n_avaliados": 24937,
+      "soma_pesos": 31748.000131900026,
+      "taxa_recalculada": 37.24,
+      "taxa_publicada": 37.24,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "RO",
+      "n_avaliados": 20116,
+      "soma_pesos": 22833.999995200116,
+      "taxa_recalculada": 64.6,
+      "taxa_publicada": 64.6,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "RS",
+      "n_avaliados": 98660,
+      "soma_pesos": 121147.99985719993,
+      "taxa_recalculada": 63.43,
+      "taxa_publicada": 63.43,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SC",
+      "n_avaliados": 80656,
+      "soma_pesos": 102620.99992400016,
+      "taxa_recalculada": 61.38,
+      "taxa_publicada": 61.38,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SE",
+      "n_avaliados": 18634,
+      "soma_pesos": 19901.110000000026,
+      "taxa_recalculada": 31.04,
+      "taxa_publicada": 31.3,
+      "diferenca_pp": -0.26
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "SP",
+      "n_avaliados": null,
+      "soma_pesos": null,
+      "taxa_recalculada": null,
+      "taxa_publicada": 51.91,
+      "diferenca_pp": null
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "TO",
+      "n_avaliados": 16831,
+      "soma_pesos": 20059.00002759999,
+      "taxa_recalculada": 43.72,
+      "taxa_publicada": 43.72,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "AC",
+      "n_avaliados": 10234,
+      "soma_pesos": 12658.030000000008,
+      "taxa_recalculada": 51.38,
+      "taxa_publicada": 51.38,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "AL",
+      "n_avaliados": 31575,
+      "soma_pesos": 33675.94000000014,
+      "taxa_recalculada": 48.64,
+      "taxa_publicada": 48.63,
+      "diferenca_pp": 0.01
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "AM",
+      "n_avaliados": 46628,
+      "soma_pesos": 58651.230000000374,
+      "taxa_recalculada": 49.17,
+      "taxa_publicada": 49.17,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "AP",
+      "n_avaliados": 11214,
+      "soma_pesos": 12583.749999999938,
+      "taxa_recalculada": 46.62,
+      "taxa_publicada": 46.62,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "BA",
+      "n_avaliados": 104069,
+      "soma_pesos": 104069.0,
+      "taxa_recalculada": 35.96,
+      "taxa_publicada": 35.96,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "CE",
+      "n_avaliados": 88158,
+      "soma_pesos": 89848.22000000137,
+      "taxa_recalculada": 85.31,
+      "taxa_publicada": 85.31,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "DF",
+      "n_avaliados": 22111,
+      "soma_pesos": 27683.229999998694,
+      "taxa_recalculada": 59.13,
+      "taxa_publicada": null,
+      "diferenca_pp": null
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "ES",
+      "n_avaliados": 42751,
+      "soma_pesos": 47552.5099999997,
+      "taxa_recalculada": 71.7,
+      "taxa_publicada": 71.69,
+      "diferenca_pp": 0.01
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "GO",
+      "n_avaliados": 70799,
+      "soma_pesos": 77185.06000000016,
+      "taxa_recalculada": 72.74,
+      "taxa_publicada": 72.74,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "MA",
+      "n_avaliados": 62974,
+      "soma_pesos": 69300.23000000003,
+      "taxa_recalculada": 59.65,
+      "taxa_publicada": 59.64,
+      "diferenca_pp": 0.01
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "MG",
+      "n_avaliados": 180771,
+      "soma_pesos": 203521.2000000001,
+      "taxa_recalculada": 72.08,
+      "taxa_publicada": 72.07,
+      "diferenca_pp": 0.01
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "MS",
+      "n_avaliados": 37212,
+      "soma_pesos": 41336.41000000013,
+      "taxa_recalculada": 55.87,
+      "taxa_publicada": 55.87,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "MT",
+      "n_avaliados": 45083,
+      "soma_pesos": 50992.30999999966,
+      "taxa_recalculada": 60.59,
+      "taxa_publicada": 60.59,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "PA",
+      "n_avaliados": 83193,
+      "soma_pesos": 100007.24999999987,
+      "taxa_recalculada": 48.2,
+      "taxa_publicada": 48.2,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "PB",
+      "n_avaliados": 31004,
+      "soma_pesos": 35127.83000000006,
+      "taxa_recalculada": 55.96,
+      "taxa_publicada": 55.96,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "PE",
+      "n_avaliados": 75953,
+      "soma_pesos": 80374.66000000006,
+      "taxa_recalculada": 60.79,
+      "taxa_publicada": 60.79,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "PI",
+      "n_avaliados": 31105,
+      "soma_pesos": 32796.610000000095,
+      "taxa_recalculada": 59.83,
+      "taxa_publicada": 59.82,
+      "diferenca_pp": 0.01
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "PR",
+      "n_avaliados": 119806,
+      "soma_pesos": 138958.92000000004,
+      "taxa_recalculada": 70.42,
+      "taxa_publicada": 70.42,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "RJ",
+      "n_avaliados": 125671,
+      "soma_pesos": 151233.5600000007,
+      "taxa_recalculada": 55.26,
+      "taxa_publicada": 55.25,
+      "diferenca_pp": 0.01
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "RN",
+      "n_avaliados": 22848,
+      "soma_pesos": 29404.289999999964,
+      "taxa_recalculada": 39.29,
+      "taxa_publicada": 39.29,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "RO",
+      "n_avaliados": 20027,
+      "soma_pesos": 22680.06999999981,
+      "taxa_recalculada": 62.63,
+      "taxa_publicada": 62.62,
+      "diferenca_pp": 0.01
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "RS",
+      "n_avaliados": 89562,
+      "soma_pesos": 108062.43578610024,
+      "taxa_recalculada": 44.76,
+      "taxa_publicada": 44.67,
+      "diferenca_pp": 0.09
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "SC",
+      "n_avaliados": 69035,
+      "soma_pesos": 98545.7099999999,
+      "taxa_recalculada": 62.02,
+      "taxa_publicada": 62.02,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "SE",
+      "n_avaliados": 17802,
+      "soma_pesos": 19430.900000000012,
+      "taxa_recalculada": 38.39,
+      "taxa_publicada": 38.39,
+      "diferenca_pp": 0.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "SP",
+      "n_avaliados": 395444,
+      "soma_pesos": 443732.9994381066,
+      "taxa_recalculada": 58.14,
+      "taxa_publicada": 58.13,
+      "diferenca_pp": 0.01
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "TO",
+      "n_avaliados": 16799,
+      "soma_pesos": 19737.55000000007,
+      "taxa_recalculada": 50.05,
+      "taxa_publicada": 50.07,
+      "diferenca_pp": -0.02
+    }
+  ],
+  "validacao_municipio_distribuicao": [
+    {
+      "ano": 2023,
+      "rede_padrao": "estadual",
+      "pares": 1054,
+      "ate_001": 923,
+      "ate_05": 1035,
+      "p50": 0.0,
+      "p95": 0.16,
+      "maxima": 26.6
+    },
+    {
+      "ano": 2023,
+      "rede_padrao": "municipal",
+      "pares": 4821,
+      "ate_001": 4207,
+      "ate_05": 4755,
+      "p50": 0.0,
+      "p95": 0.07,
+      "maxima": 36.06
+    },
+    {
+      "ano": 2023,
+      "rede_padrao": "publica",
+      "pares": 4871,
+      "ate_001": 4061,
+      "ate_05": 4798,
+      "p50": 0.0,
+      "p95": 0.12,
+      "maxima": 36.06
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "estadual",
+      "pares": 1085,
+      "ate_001": 797,
+      "ate_05": 1073,
+      "p50": 0.0,
+      "p95": 0.05,
+      "maxima": 22.95
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "municipal",
+      "pares": 5448,
+      "ate_001": 4400,
+      "ate_05": 5421,
+      "p50": 0.0,
+      "p95": 0.04,
+      "maxima": 9.27
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "publica",
+      "pares": 5516,
+      "ate_001": 4459,
+      "ate_05": 5490,
+      "p50": 0.0,
+      "p95": 0.04,
+      "maxima": 14.5
+    },
+    {
+      "ano": 2024,
+      "rede_padrao": "total",
+      "pares": 398,
+      "ate_001": 394,
+      "ate_05": 397,
+      "p50": 0.0,
+      "p95": 0.0,
+      "maxima": 0.52
+    }
+  ],
+  "validacao_municipio_maiores_diferencas": [
+    {
+      "ano": 2023,
+      "id_municipio": "2305100",
+      "sigla_uf": "CE",
+      "rede_padrao": "municipal",
+      "n_avaliados": 71,
+      "taxa_recalculada": 55.61,
+      "taxa_publicada": 91.67,
+      "diferenca_pp": -36.06,
+      "taxa_referencia_meta": 55.6
+    },
+    {
+      "ano": 2023,
+      "id_municipio": "1304005",
+      "sigla_uf": "AM",
+      "rede_padrao": "municipal",
+      "n_avaliados": 106,
+      "taxa_recalculada": 52.54,
+      "taxa_publicada": 35.75,
+      "diferenca_pp": 16.79,
+      "taxa_referencia_meta": null
+    },
+    {
+      "ano": 2023,
+      "id_municipio": "2304905",
+      "sigla_uf": "CE",
+      "rede_padrao": "municipal",
+      "n_avaliados": 118,
+      "taxa_recalculada": 83.11,
+      "taxa_publicada": 99.15,
+      "diferenca_pp": -16.04,
+      "taxa_referencia_meta": 83.1
+    },
+    {
+      "ano": 2024,
+      "id_municipio": "2506806",
+      "sigla_uf": "PB",
+      "rede_padrao": "municipal",
+      "n_avaliados": 128,
+      "taxa_recalculada": 47.24,
+      "taxa_publicada": 37.97,
+      "diferenca_pp": 9.27,
+      "taxa_referencia_meta": 37.97
+    },
+    {
+      "ano": 2023,
+      "id_municipio": "1300607",
+      "sigla_uf": "AM",
+      "rede_padrao": "municipal",
+      "n_avaliados": 429,
+      "taxa_recalculada": 44.0,
+      "taxa_publicada": 38.02,
+      "diferenca_pp": 5.98,
+      "taxa_referencia_meta": null
+    },
+    {
+      "ano": 2023,
+      "id_municipio": "4308300",
+      "sigla_uf": "RS",
+      "rede_padrao": "municipal",
+      "n_avaliados": 43,
+      "taxa_recalculada": 58.14,
+      "taxa_publicada": 62.05,
+      "diferenca_pp": -3.91,
+      "taxa_referencia_meta": 62.1
+    },
+    {
+      "ano": 2023,
+      "id_municipio": "2205854",
+      "sigla_uf": "PI",
+      "rede_padrao": "municipal",
+      "n_avaliados": 96,
+      "taxa_recalculada": 58.69,
+      "taxa_publicada": 62.05,
+      "diferenca_pp": -3.36,
+      "taxa_referencia_meta": 62.1
+    },
+    {
+      "ano": 2024,
+      "id_municipio": "4300455",
+      "sigla_uf": "RS",
+      "rede_padrao": "municipal",
+      "n_avaliados": 17,
+      "taxa_recalculada": 58.82,
+      "taxa_publicada": 55.6,
+      "diferenca_pp": 3.22,
+      "taxa_referencia_meta": 55.6
+    },
+    {
+      "ano": 2024,
+      "id_municipio": "1302009",
+      "sigla_uf": "AM",
+      "rede_padrao": "municipal",
+      "n_avaliados": 51,
+      "taxa_recalculada": 32.81,
+      "taxa_publicada": 36.03,
+      "diferenca_pp": -3.22,
+      "taxa_referencia_meta": null
+    },
+    {
+      "ano": 2024,
+      "id_municipio": "4313086",
+      "sigla_uf": "RS",
+      "rede_padrao": "municipal",
+      "n_avaliados": 18,
+      "taxa_recalculada": 61.11,
+      "taxa_publicada": 57.9,
+      "diferenca_pp": 3.21,
+      "taxa_referencia_meta": 57.9
+    },
+    {
+      "ano": 2023,
+      "id_municipio": "2804904",
+      "sigla_uf": "SE",
+      "rede_padrao": "municipal",
+      "n_avaliados": 71,
+      "taxa_recalculada": 13.83,
+      "taxa_publicada": 16.9,
+      "diferenca_pp": -3.07,
+      "taxa_referencia_meta": 16.9
+    },
+    {
+      "ano": 2023,
+      "id_municipio": "1300029",
+      "sigla_uf": "AM",
+      "rede_padrao": "municipal",
+      "n_avaliados": 160,
+      "taxa_recalculada": 36.87,
+      "taxa_publicada": 39.91,
+      "diferenca_pp": -3.04,
+      "taxa_referencia_meta": 39.9
+    },
+    {
+      "ano": 2023,
+      "id_municipio": "1304401",
+      "sigla_uf": "AM",
+      "rede_padrao": "municipal",
+      "n_avaliados": 172,
+      "taxa_recalculada": 45.75,
+      "taxa_publicada": 48.58,
+      "diferenca_pp": -2.83,
+      "taxa_referencia_meta": null
+    },
+    {
+      "ano": 2024,
+      "id_municipio": "1300631",
+      "sigla_uf": "AM",
+      "rede_padrao": "municipal",
+      "n_avaliados": 132,
+      "taxa_recalculada": 80.97,
+      "taxa_publicada": 83.74,
+      "diferenca_pp": -2.77,
+      "taxa_referencia_meta": null
+    },
+    {
+      "ano": 2024,
+      "id_municipio": "4320230",
+      "sigla_uf": "RS",
+      "rede_padrao": "municipal",
+      "n_avaliados": 18,
+      "taxa_recalculada": 38.41,
+      "taxa_publicada": 36.1,
+      "diferenca_pp": 2.31,
+      "taxa_referencia_meta": 36.1
+    }
+  ],
   "_execucoes": [
     {
       "id_execucao": "20261102T165554Z_c2e682",
@@ -954,6 +1985,36 @@
       ],
       "job_ids": [
         "0ecc490c-d159-463c-835c-84dde23a8c9e"
+      ]
+    },
+    {
+      "id_execucao": "20261102T231309Z_a99822",
+      "consultas": [
+        "validacao_uf_sem_microdado",
+        "validacao_municipio_sem_microdado",
+        "validacao_municipio_sem_microdado_total",
+        "validacao_brasil",
+        "validacao_uf_maiores_diferencas",
+        "validacao_uf_publica",
+        "validacao_municipio_distribuicao"
+      ],
+      "job_ids": [
+        "ab1d3619-c617-4d45-9e2d-f01655ed88f8",
+        "5a10f495-58a5-4b02-8602-d6eaac5bb83a",
+        "c04874df-ba4b-4ef7-9735-dbbec848e6ea",
+        "d562871b-e09c-4f73-968a-d82509a49f62",
+        "9fdd2ff0-a034-4a9f-b65e-21de1b90f311",
+        "cf42a521-933e-462e-9a5b-44bc45c0f69b",
+        "5f1edbaf-8b0f-4725-aa51-714c3ae99480"
+      ]
+    },
+    {
+      "id_execucao": "20261102T232316Z_3a3fe5",
+      "consultas": [
+        "validacao_municipio_maiores_diferencas"
+      ],
+      "job_ids": [
+        "1f83dbc0-24d4-470b-b44a-b3b06bdd59d1"
       ]
     }
   ]

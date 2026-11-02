@@ -35,6 +35,7 @@ TOLERANCIA = 0.01  # pontos percentuais; as taxas vêm com 2 casas na fonte
 
 def consultas(s: Settings) -> dict[str, str]:
     F = s.fonte
+    V = s.tabela(s.ds_gold, "validacao_microdado_stg")
     return {
         "rede_meta_uf": f"""
             SELECT u.rede, COUNT(*) AS pares,
@@ -166,6 +167,51 @@ def consultas(s: Settings) -> dict[str, str]:
             FROM `{s.fonte_projeto}.{s.fonte_diretorios}.INFORMATION_SCHEMA.COLUMNS`
             WHERE table_name IN ('municipio', 'uf')
             ORDER BY table_name, ordinal_position""",
+        # Validação cruzada (gold.validacao_microdado_stg, deixada pela execução
+        # 20261102T230818Z_2d4702 que reprovou validacao_microdado_match_uf com 97,9%).
+        "validacao_uf_sem_microdado": f"""
+            SELECT ano, sigla_uf, rede_padrao, taxa_publicada
+            FROM {V} WHERE nivel = 'uf' AND tem_publicada AND NOT tem_microdado
+            ORDER BY 1, 2, 3""",
+        "validacao_municipio_sem_microdado": f"""
+            SELECT ano, sigla_uf, rede_padrao, COUNT(*) AS publicadas_sem_microdado
+            FROM {V} WHERE nivel = 'municipio' AND tem_publicada AND NOT tem_microdado
+            GROUP BY 1, 2, 3 ORDER BY 4 DESC LIMIT 40""",
+        "validacao_municipio_sem_microdado_total": f"""
+            SELECT ano, rede_padrao, COUNTIF(tem_publicada) AS publicadas,
+                   COUNTIF(tem_publicada AND NOT tem_microdado) AS sem_microdado,
+                   COUNTIF(tem_microdado AND NOT tem_publicada) AS microdado_sem_publicada
+            FROM {V} WHERE nivel = 'municipio' GROUP BY 1, 2 ORDER BY 1, 2""",
+        "validacao_brasil": f"""
+            SELECT ano, rede_padrao, n_avaliados, soma_pesos, taxa_recalculada, taxa_publicada, diferenca_pp
+            FROM {V} WHERE nivel = 'brasil' ORDER BY 1, 2""",
+        "validacao_uf_maiores_diferencas": f"""
+            SELECT ano, sigla_uf, rede_padrao, n_avaliados, taxa_recalculada, taxa_publicada, diferenca_pp
+            FROM {V} WHERE nivel = 'uf' AND diferenca_pp IS NOT NULL
+            ORDER BY ABS(diferenca_pp) DESC LIMIT 15""",
+        "validacao_uf_publica": f"""
+            SELECT ano, sigla_uf, n_avaliados, soma_pesos, taxa_recalculada, taxa_publicada, diferenca_pp
+            FROM {V} WHERE nivel = 'uf' AND rede_padrao = 'publica' ORDER BY 1, 2""",
+        "validacao_municipio_distribuicao": f"""
+            SELECT ano, rede_padrao, COUNT(*) AS pares,
+                   COUNTIF(ABS(diferenca_pp) <= 0.01) AS ate_001,
+                   COUNTIF(ABS(diferenca_pp) <= 0.5) AS ate_05,
+                   APPROX_QUANTILES(ABS(diferenca_pp), 100)[OFFSET(50)] AS p50,
+                   APPROX_QUANTILES(ABS(diferenca_pp), 100)[OFFSET(95)] AS p95,
+                   MAX(ABS(diferenca_pp)) AS maxima
+            FROM {V} WHERE nivel = 'municipio' AND diferenca_pp IS NOT NULL
+            GROUP BY 1, 2 ORDER BY 1, 2""",
+        # §10: a maior diferença de município (36,06) é o 2305100 de §2? A taxa da meta
+        # bate com a recalculada (erro em municipio) ou com a publicada (erro na meta)?
+        "validacao_municipio_maiores_diferencas": f"""
+            SELECT v.ano, v.id_municipio, v.sigla_uf, v.rede_padrao, v.n_avaliados,
+                   v.taxa_recalculada, v.taxa_publicada, v.diferenca_pp,
+                   i.taxa_referencia_meta
+            FROM {s.tabela(s.ds_gold, 'validacao_microdado')} AS v
+            LEFT JOIN {s.tabela(s.ds_gold, 'indicador_municipio')} AS i
+              ON i.ano = v.ano AND i.id_municipio = v.id_municipio AND i.rede_padrao = v.rede_padrao
+            WHERE v.nivel = 'municipio' AND v.rede_padrao = 'municipal'
+            ORDER BY ABS(v.diferenca_pp) DESC LIMIT 15""",
     }
 
 

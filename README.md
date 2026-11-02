@@ -8,8 +8,10 @@ com ingestão batch e streaming dos dados do Indicador Criança Alfabetizada
 > Ingestão Bronze implementada e executada duas vezes
 > (`evidencias/fase2_bronze_duas_cargas_municipio.csv`). Silver e regras de qualidade
 > implementadas e executadas (`evidencias/fase2_silver_qualidade.csv`: 51 regras, 44
-> bloqueantes aprovadas), com falha demonstrada (`evidencias/fase2_pipeline_falhou.jpg`). Gold, streaming e alertas estão
-> **planejados para as próximas etapas**.
+> bloqueantes aprovadas), com falha demonstrada (`evidencias/fase2_pipeline_falhou.jpg`).
+> Gold implementada e executada: 6 tabelas publicadas e exportadas em Parquet para o bucket
+> (execuções `20261102T230818Z_2d4702` e `20261102T232157Z_b0292a`). Streaming e alertas
+> estão **planejados para as próximas etapas**.
 
 ## O que já existe
 
@@ -24,8 +26,9 @@ com ingestão batch e streaming dos dados do Indicador Criança Alfabetizada
 | Ingestão Bronze | `pipeline/orquestrador.py`, `pipeline/bronze/*.sql`, `infra/sql/bronze.sql` | Carga append das 7 tabelas e do diretório de municípios, com contrato de esquema, conferência de contagem e retentativa |
 | Silver | `pipeline/silver/*.sql`, `pipeline/orquestrador.py` | 9 tabelas tratadas, gravadas em staging e publicadas só depois das regras |
 | Qualidade | `quality/regras.yaml`, `quality/runner.py` | Regras bloqueantes e informativas, gravadas em `ops.qualidade` |
+| Gold | `pipeline/gold/*.sql`, `pipeline/orquestrador.py` | 6 tabelas analíticas, com as mesmas regras antes de publicar e exportação Parquet para o bucket |
 | Demonstração de falha | `scripts/injetar_falha/*.sql`, `--injetar-falha` | Injeta dado ruim na staging para provar que a regra bloqueante impede a publicação |
-| Testes | `tests/test_fase1.py`, `tests/test_bronze.py`, `tests/test_silver.py` | 151 testes, sem dependência do GCP |
+| Testes | `tests/test_fase1.py`, `tests/test_bronze.py`, `tests/test_silver.py`, `tests/test_gold.py` | 202 testes, sem dependência do GCP |
 
 ## Como executar
 
@@ -44,6 +47,7 @@ make perfil               # gera docs/dicionario_dados.md e grava em ops.execuco
 make investigar           # gera docs/perfil/investigacao.json
 make bronze               # carga append das 8 tabelas em bronze.*
 make silver               # Silver: staging -> regras -> publicação
+make gold                 # Gold: staging -> regras -> publicação -> Parquet no bucket
 ```
 
 Para olhar a fonte antes de criar a infraestrutura: `make perfil-sem-ops`.
@@ -58,6 +62,7 @@ bash infra/setup.sh
 .venv/Scripts/python -m scripts.investigar_fonte
 .venv/Scripts/python -m pipeline.orquestrador --camadas bronze   # --tabelas uf municipio
 .venv/Scripts/python -m pipeline.orquestrador --camadas silver
+.venv/Scripts/python -m pipeline.orquestrador --camadas gold
 ```
 
 `infra/setup.sh` pode ser rodado de novo sem risco: ele só cria o que falta (por
@@ -189,7 +194,8 @@ uma query por regra multiplicaria esse piso. O runner grava todos os resultados 
 reprovar, levanta `QualidadeBloqueanteError`. Nenhum `except` engole esse erro: o
 `registrar_etapa` grava `status = 'falhou'` em `ops.execucoes` e propaga a exceção.
 
-51 regras: 44 bloqueantes e 7 informativas.
+Na Silver são 51 regras: 44 bloqueantes e 7 informativas. A Gold acrescenta 29 (22
+bloqueantes e 7 informativas; ver [Gold](#gold)), num total de 80.
 
 | Tipo | Regras | Severidade |
 | --- | ---: | --- |
@@ -259,6 +265,122 @@ As outras 8 regras da tabela aprovaram na mesma execução. A regra
 Para voltar ao estado normal, rode a mesma tabela sem a opção. A staging é recriada a
 partir da Bronze, aprovada e removida:
 `.venv/Scripts/python -m pipeline.orquestrador --camadas silver --tabelas resultado_municipio`.
+
+## Gold
+
+Os SQLs ficam em `pipeline/gold/<tabela>.sql` e são executados por
+`pipeline/orquestrador.py --camadas gold`. O fluxo é o mesmo da Silver: staging, regras,
+publicação. Depois de publicada, cada tabela é exportada em Parquet (Snappy) para
+`gs://<GCS_BUCKET>/gold/<tabela>/id_execucao=<id>/`, que é o insumo da fase 3. Cada
+execução grava num prefixo novo (`overwrite = false`), então as exportações anteriores
+continuam disponíveis.
+
+| Tabela | Grão | Entidades | Para quê |
+| --- | --- | --- | --- |
+| `indicador_municipio` | município × ano × rede | municipio, meta_municipio, diretório | Indicador × meta pactuada municipal |
+| `indicador_uf` | UF × ano × rede | uf, meta_uf, municipio (DF), diretório | Indicador × meta pactuada estadual, de 2023 a 2025 |
+| `validacao_microdado` | nível (município, UF, Brasil) × ano × rede | alunos, municipio, uf, meta_brasil | Taxa recalculada dos microdados × taxa publicada |
+| `indicador_brasil` | ano × rede | meta_brasil, validacao, indicador_uf | Trajetória nacional × meta pactuada |
+| `evolucao_temporal` | nível × território × rede × ano | os três indicadores | Variação em relação ao ano anterior disponível |
+| `features_ml` | município × ano base | municipio, meta_municipio, alunos, uf, diretório | Base para o modelo da fase 3 |
+
+As seis entidades do enunciado chegam à Gold, e um teste garante isso
+(`test_as_seis_entidades_chegam_a_gold`).
+
+**Regras de negócio no SQL.**
+- **Status da meta em quatro estados:** `atingiu`, `nao_atingiu`, `sem_meta` e
+  `sem_resultado`. A ausência de meta e a ausência de resultado são decididas antes da
+  comparação, então nunca caem no `ELSE` como "não atingiu".
+- **Meta pactuada da fonte.** A meta do ano *Y* é a coluna `meta_alfabetizacao_Y` da
+  publicação do mesmo ano. As distâncias são `distancia_meta_pactuada` (até a meta do ano)
+  e `distancia_meta_pactuada_2030` (até a meta de 2030, que é 80 na rede pública).
+  **Cenário aspiracional:** a universalização aparece só em
+  `distancia_cenario_aspiracional` (100 − taxa) e não é misturada com a meta pactuada em
+  nenhuma outra coluna.
+- **Mesmo recorte.** Resultado e meta só são comparados no mesmo `ano` e `rede_padrao`,
+  e só na série do indicador (`serie = '2'`). A rede que não tem meta pactuada fica
+  `sem_meta`.
+- **FULL JOIN entre resultado e meta.** Uma meta sem resultado aparece como
+  `sem_resultado`, em vez de sumir.
+- **Ponderação.** `indicador_brasil` usa a taxa oficial e mostra, ao lado, a taxa
+  recalculada dos microdados, a `media_ponderada_ufs` (pelos pesos dos avaliados) e a
+  `media_simples_ufs`. Esta última está com esse nome justamente por não ser o indicador.
+- **Origem.** Toda tabela tem `origem = 'oficial'`. O streaming vai acrescentar
+  `'simulado'`, e a coluna permite separar os dois.
+- **De onde vem o resultado de UF** (coluna `fonte_resultado`): `resultado_uf`; ou o único
+  município da UF, quando ela não tem linha própria (DF 2024 = Brasília); ou a própria
+  `meta_uf`, quando o ano só existe ali (2025).
+
+**Validação cruzada (diferencial).** `validacao_microdado` recalcula
+`100 × Σ(peso × alfabetizado) / Σ peso` sobre os alunos avaliados, por município, e soma
+os resultados para UF e Brasil. Assim, `alunos` é lida uma vez só. Depois compara com a
+taxa publicada em `diferenca_pp`. `indicador_brasil` e `features_ml` reaproveitam a tabela,
+em vez de varrer os microdados de novo.
+
+**Regras da Gold** (22 bloqueantes, 7 informativas): chave única e status coerente em
+todas as tabelas. Os limiares de correspondência entre resultado e meta foram medidos na
+investigação: 99% no pior ano para município × meta (§3); 24 UFs com resultado em 2023 e
+26 em 2024 (§4). Na validação, os limiares também são os valores medidos (§10): no
+máximo 3 linhas de UF e 802 de município sem microdado, todas da lacuna da fonte
+(SP 2023). A taxa nacional de 2024 recalculada precisa ficar a até 0,05 p.p. da oficial.
+A regra `features_ml_coluna_com_vazamento` lê o `INFORMATION_SCHEMA` da staging e
+bloqueia qualquer coluna `status`, `distancia` ou `faixa` na base de features.
+
+**Resultado da validação cruzada** ([investigação](docs/investigacao.md) §10):
+
+| Brasil, rede pública | UFs | recalculada | oficial | diferença |
+| --- | ---: | ---: | ---: | ---: |
+| 2024 | 27 | 59,20 | 59,2 | **0,00** |
+| 2023 | 24 (sem SP) | 57,46 | 55,9 | +1,56 |
+
+Em 2024, a taxa recalculada dos microdados bate com a oficial, e a maior diferença numa
+UF é de 0,09 p.p. Isso confirma filtro, peso, denominador e chaves em todas as camadas
+anteriores. Em 2023, a diferença vem principalmente de uma lacuna da fonte: São Paulo
+não está nos microdados de alunos. Com SP estimado pelo peso de 2024, a diferença cairia
+para cerca de 0,4 p.p.
+
+A validação também achou erro na própria fonte (§10). Em 2023, para os municípios
+2305100 e 2304905 (CE), a tabela `municipio` publica 91,67 e 99,15. Os microdados dão
+55,61 e 83,11, e a tabela de meta traz 55,6 e 83,1.
+
+**Execução** (`20261102T232157Z_b0292a`, a partir de `validacao_microdado`; as duas
+primeiras tabelas são da execução `20261102T230818Z_2d4702`):
+
+| Tabela | Linhas | Bytes faturados (staging + regras) |
+| --- | ---: | ---: |
+| `indicador_municipio` | 24.045 | 40 MiB |
+| `indicador_uf` | 178 | 50 MiB |
+| `validacao_microdado` | 34.201 | 222 MiB |
+| `indicador_brasil` | 3 | 40 MiB |
+| `evolucao_temporal` | 24.172 | 40 MiB |
+| `features_ml` | 10.896 | 70 MiB |
+
+A exportação Parquet de cada tabela faturou mais 10 MiB. Só `validacao_microdado` lê
+volume real (212 MiB dos microdados). Nas outras, o custo é o piso de 10 MB por tabela
+referenciada.
+
+## Aplicação em IA
+
+`gold.features_ml` tem uma linha por município × ano base *t* (rede municipal). As
+features são todas do ano *t*:
+- taxa de alfabetização, média em português e proporção de alunos por nível;
+- número de avaliados e de escolas, e proficiência média ponderada;
+- taxa da UF na rede pública e participação;
+- meta pactuada para *t+1*, que é publicada antes do resultado;
+- UF, região, capital e Amazônia Legal.
+
+O alvo é `alvo_taxa_alfabetizacao_proximo_ano`, a taxa de *t+1*.
+
+**Vazamento de alvo.** Ficam fora da tabela o status da meta, as distâncias até a meta e
+a `faixa_taxa_alfabetizacao`. A faixa é a própria taxa em intervalos
+([investigação](docs/investigacao.md) §6): com ela, o modelo acertaria sem aprender.
+Uma regra bloqueante impede que essas colunas voltem.
+
+**Limite da série.** Com resultados municipais só de 2023 e 2024, há um único par de anos
+para treino (2023 → 2024). As linhas de 2024 têm alvo nulo e servem para prever 2025.
+Qualquer projeção até 2030 é cenário, não previsão. As mesmas tabelas servem para
+análise de desigualdade: os indicadores por região, UF, capital e Amazônia Legal, e a
+distância de cada município à meta pactuada.
 
 ## Decisões já tomadas
 

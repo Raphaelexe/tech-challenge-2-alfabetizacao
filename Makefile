@@ -6,7 +6,7 @@ else
 PY      = $(VENV)/bin/python
 endif
 
-.PHONY: setup infra perfil perfil-sem-ops investigar bronze silver pipeline testes
+.PHONY: setup infra perfil perfil-sem-ops investigar bronze silver gold pipeline testes
 
 setup:            ## cria o ambiente virtual e instala dependências
 	$(PYTHON) -m venv $(VENV)
@@ -30,6 +30,9 @@ bronze:           ## carga append das 8 tabelas em bronze.*
 
 silver:           ## Silver com regras de qualidade antes de publicar
 	$(PY) -m pipeline.orquestrador --camadas silver
+
+gold:             ## Gold com regras e exportação Parquet para o bucket
+	$(PY) -m pipeline.orquestrador --camadas gold
 
 pipeline:         ## todas as camadas implementadas, em ordem
 	$(PY) -m pipeline.orquestrador

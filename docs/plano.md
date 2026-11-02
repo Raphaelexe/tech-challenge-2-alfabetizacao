@@ -406,14 +406,17 @@ Legenda: `[x]` feito · `[~]` código pronto, falta rodar no GCP / gerar evidên
 
 ### Fase 3 — Gold, streaming e monitoramento
 
-- [ ] SQLs de Gold com status em três estados, ponderação por alunos e mesmo recorte de
-  rede/série.
-- [ ] Taxa de match após cada join; medir primeiro, depois fixar e justificar os limiares.
-- [ ] `gold.validacao_microdado`: comparar taxa recalculada com a publicada; investigar e
-  documentar diferenças.
+- [x] SQLs de Gold com status em quatro estados (`sem_resultado` além dos três previstos),
+  ponderação por alunos e mesmo recorte de rede/série (`pipeline/gold/*.sql`, `make gold`),
+  executados.
+- [x] Taxa de match após cada join, com limiares medidos e confirmados na execução
+  (99,07% município × meta; 24/26/27 UFs; ≤ 3 UF e ≤ 802 município sem microdado).
+- [x] `gold.validacao_microdado`: taxa recalculada comparada com a publicada; diferenças
+  investigadas e documentadas (§10). Brasil 2024 bate com exatidão; SP 2023 ausente da fonte.
 - [ ] Produtor + assinatura BigQuery + micro-lote com dedup, quarentena, latência e `origem`.
 - [ ] Métrica de log e política de alerta por e-mail; testar com `scripts/injetar_falha.sql`.
-- [ ] Exportar Gold em Parquet para o bucket (insumo da fase 3 do curso).
+- [x] Exportar Gold em Parquet para o bucket (insumo da fase 3 do curso): `EXPORT DATA` em
+  `gs://<bucket>/gold/<tabela>/id_execucao=<id>/`, executado para as 6 tabelas.
 
 ### Fase 4 — FinOps, documentação e vídeo
 
@@ -540,3 +543,43 @@ match, divergências de chaves, tamanhos de tabela, etc.).
 - **2026-11-02 — FinOps (Silver):** a staging de `resultado_municipio` foi estimada em 5,2 MiB e
   faturada em 40,0 MiB, pelo piso de 10 MB por tabela referenciada (bronze.municipio,
   diretorio, rede, dicionario). Cada consulta de regras faturou 10 MiB.
+- **2026-11-02 — Gold implementada:**
+  - **Status:** 4 estados, porque meta sem resultado (AC, DF, RR) e rede sem meta são
+    situações diferentes. A meta do ano Y vem da publicação Y.
+  - **Fonte do resultado de UF:** `resultado_uf`, depois o único município da UF (DF 2024),
+    depois `meta_uf` (2025).
+  - **Validação:** `validacao_microdado` lê `alunos_avaliados` uma vez e soma por município
+    → UF → Brasil; `indicador_brasil` e `features_ml` reaproveitam essa tabela.
+  - **Features:** alvo = taxa municipal de t+1; status, distâncias e faixa ficam fora, e
+    uma regra bloqueante lê o `INFORMATION_SCHEMA` para garantir isso.
+  - **Exportação:** em Parquet/Snappy, num prefixo por `id_execucao`.
+- **2026-11-02 — 1ª execução da Gold** (`20261102T230818Z_2d4702`):
+  - **Publicadas e exportadas:** `indicador_municipio` (24.045 linhas) e `indicador_uf` (178),
+    em Parquet no bucket. Todos os limiares medidos na investigação bateram exatamente:
+    match município × meta 99,07%, 3 divergências de taxa, 24/26/27 UFs com resultado em
+    2023/2024/2025 e 2 linhas de DF via Brasília.
+  - **Parou em `validacao_microdado`:** a regra bloqueante `validacao_microdado_match_uf`
+    reprovou com 97,9% (142 de 145 linhas de UF publicadas com microdado). As informativas
+    também ficaram fora do esperado: match de município 96,7%, maior diferença em UF
+    1,49 p.p., Brasil 1,56 p.p. A staging foi mantida para investigação (consultas
+    `validacao_*` em `scripts/investigar_fonte.py`). A validação leu 212 MiB, a maior
+    leitura da Gold.
+- **2026-11-02 — validação cruzada investigada** (`docs/investigacao.md` §10):
+  - **Causa da reprovação:** SP 2023 não está nos microdados da fonte. São as 3 linhas de UF
+    e 801 das 802 de município sem par.
+  - **Brasil 2024:** recalculada 59,20 contra oficial 59,2 (diferença 0,00). Isso confirma a
+    pipeline de ponta a ponta.
+  - **Brasil 2023:** +1,56 p.p. sem SP; com SP estimado, a diferença cairia para ~0,4 p.p.
+  - **Peso amostral:** MS 2023 tem todo peso = 1.
+  - **Regras:** recalibradas em contagem (≤ 3 UF, ≤ 802 município); `brasil_2024 ≤ 0,05`
+    passou a ser bloqueante. Nova coluna `n_ufs_com_microdado`.
+- **2026-11-02 — Gold completa** (`20261102T232157Z_b0292a`):
+  - **Execução:** as 4 tabelas restantes foram publicadas e exportadas; as 22 regras
+    bloqueantes da Gold aprovaram.
+  - **Brasil 2024:** diferença de 0,00 entre recalculada e oficial.
+  - **`features_ml`:** 10.896 linhas, sem coluna com vazamento. 52 municípios têm resultado
+    em 2023 e não em 2024 (limiar recalibrado para ≤ 52).
+  - **Erro na fonte (§10):** para 2305100 e 2304905 em 2023, microdados e meta concordam
+    (55,6 e 83,1), e `municipio` está errado (91,67 e 99,15).
+  - **Custo:** `validacao_microdado` é a única leitura relevante (212 MiB); as outras tabelas
+    ficam no piso de 10 MB por tabela referenciada.

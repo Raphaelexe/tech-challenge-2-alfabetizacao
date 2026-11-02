@@ -10,13 +10,16 @@ Bronze (append-only), para cada tabela:
 2. executa pipeline/bronze/<tabela>.sql com dt_ingestao, id_execucao e fonte;
 3. confere se as linhas gravadas batem com as linhas da fonte.
 
-Silver (CREATE OR REPLACE, reconstruível a partir da Bronze), para cada tabela:
+Silver e Gold (CREATE OR REPLACE, reconstruíveis a partir da Bronze), para cada tabela:
 1. lê a carga Bronze mais recente que terminou com sucesso em ops.execucoes (só ela
    passou pelas travas de esquema e contagem);
-2. grava pipeline/silver/<tabela>.sql em silver.<tabela>_stg;
+2. grava pipeline/<camada>/<tabela>.sql em <camada>.<tabela>_stg;
 3. roda as regras de quality/regras.yaml sobre a staging e grava em ops.qualidade;
-4. só se nenhuma bloqueante reprovar: copia a staging para silver.<tabela> e a remove.
+4. só se nenhuma bloqueante reprovar: copia a staging para <camada>.<tabela> e a remove.
    Se reprovar, a tabela publicada continua a anterior e a staging fica para inspeção.
+5. Gold com exportar=True: exporta a tabela publicada em Parquet (Snappy) para
+   gs://<GCS_BUCKET>/gold/<tabela>/id_execucao=<id>/, insumo da fase 3. Cada execução
+   grava num prefixo novo, então as exportações anteriores continuam disponíveis.
 
 Demonstração de falha: --injetar-falha <cenário> roda scripts/injetar_falha/<cenário>.sql
 na staging da tabela do cenário, depois de montada e antes das regras. A Bronze e a Silver
@@ -82,6 +85,7 @@ class Etapa:
     fonte: str = ""  # Bronze: tabela de origem na Base dos Dados
     dataset_fonte: str = "inep"  # chave de Settings.dataset_fonte
     subconjunto: bool = False    # copia só parte das colunas: as demais não geram aviso
+    exportar: bool = False       # Gold: exporta em Parquet para o bucket depois de publicar
 
     @property
     def arquivo(self) -> Path:
@@ -106,6 +110,15 @@ CAMADAS: dict[str, list[Etapa]] = {
             "dicionario", "diretorio_municipio", "rede", "resultado_uf", "resultado_municipio",
             "meta_brasil", "meta_uf", "meta_municipio", "alunos_avaliados",
         )
+    ],
+    # validacao_microdado lê os microdados uma vez; brasil e features reaproveitam o resultado.
+    "gold": [
+        Etapa("gold", "indicador_municipio", exportar=True),
+        Etapa("gold", "indicador_uf", exportar=True),
+        Etapa("gold", "validacao_microdado", exportar=True),
+        Etapa("gold", "indicador_brasil", exportar=True),
+        Etapa("gold", "evolucao_temporal", exportar=True),
+        Etapa("gold", "features_ml", exportar=True),
     ],
 }
 
@@ -196,6 +209,7 @@ def marcadores_silver(s: Settings, cargas: dict[str, str], destino: str) -> dict
         "destino": destino,
         "bronze": f"`{s.gcp_project}.{s.ds_bronze}`",
         "silver": f"`{s.gcp_project}.{s.ds_silver}`",
+        "gold": f"`{s.gcp_project}.{s.ds_gold}`",
         **{f"carga_{t}": filtro_carga(i) for t, i in cargas.items()},
     }
 
@@ -299,17 +313,28 @@ def cargas_aprovadas(cliente: ClienteBQ, s: Settings) -> dict[str, str]:
     return {x["tabela"]: x["id_execucao"] for x in r.linhas}
 
 
-def executar_silver(
+def sql_exportacao(s: Settings, etapa: Etapa, id_execucao: str) -> tuple[str, str]:
+    """EXPORT DATA da tabela publicada para o bucket, num prefixo por execução."""
+    uri = f"gs://{s.gcs_bucket}/{etapa.camada}/{etapa.tabela}/id_execucao={id_execucao}/*.parquet"
+    sql = (
+        f"EXPORT DATA OPTIONS (uri = '{uri}', format = 'PARQUET', compression = 'SNAPPY', "
+        f"overwrite = false) AS\nSELECT * FROM {s.tabela(getattr(s, f'ds_{etapa.camada}'), etapa.tabela)}"
+    )
+    return sql, uri
+
+
+def executar_transformacao(
     cliente: ClienteBQ, s: Settings, etapa: Etapa, reg: RegistroEtapa, ctx: Contexto
 ) -> None:
     if ctx.cargas is None:  # lido uma vez, depois de a Bronze desta execução (se houver) terminar
         ctx.cargas = cargas_aprovadas(cliente, s)
         log.info("cargas bronze usadas: %s", ctx.cargas)
 
+    dataset = getattr(s, f"ds_{etapa.camada}")
     staging = f"{etapa.tabela}_stg"
-    staging_id = f"{s.gcp_project}.{s.ds_silver}.{staging}"
-    final_id = f"{s.gcp_project}.{s.ds_silver}.{etapa.tabela}"
-    marcadores = marcadores_silver(s, ctx.cargas, s.tabela(s.ds_silver, staging))
+    staging_id = f"{s.gcp_project}.{dataset}.{staging}"
+    final_id = f"{s.gcp_project}.{dataset}.{etapa.tabela}"
+    marcadores = marcadores_silver(s, ctx.cargas, s.tabela(dataset, staging))
 
     sql = renderizar_silver(etapa.arquivo.read_text(encoding="utf-8"), marcadores)
     reg.acumular(com_retentativa(lambda: cliente.executar(sql, retornar_linhas=False)))
@@ -329,8 +354,17 @@ def executar_silver(
     cliente.remover(staging_id)
     ctx.publicadas.append(final_id)
 
+    if etapa.exportar:
+        sql, uri = sql_exportacao(s, etapa, ctx.id_execucao)
+        reg.acumular(com_retentativa(lambda: cliente.executar(sql, retornar_linhas=False)))
+        log.info("%s exportada para %s", final_id, uri)
 
-EXECUTORES = {"bronze": executar_bronze, "silver": executar_silver}
+
+EXECUTORES = {
+    "bronze": executar_bronze,
+    "silver": executar_transformacao,
+    "gold": executar_transformacao,
+}
 
 
 def executar(
