@@ -1,0 +1,18 @@
+# Segredos e credenciais
+.env
+*.json.key
+*-credentials.json
+service-account*.json
+application_default_credentials.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store

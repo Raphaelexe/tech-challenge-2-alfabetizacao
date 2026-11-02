@@ -1,0 +1,854 @@
+{
+  "data": "2026-11-02",
+  "id_execucao": "20261102T160721Z_9ebf14",
+  "fonte": "basedosdados.br_inep_avaliacao_alfabetizacao",
+  "colunas": {
+    "alunos": [
+      {
+        "coluna": "ano",
+        "tipo": "INT64"
+      },
+      {
+        "coluna": "id_municipio",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "id_escola",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "id_aluno",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "caderno",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "serie",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "rede",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "presenca",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "preenchimento_caderno",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "alfabetizado",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "proficiencia",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "peso_aluno",
+        "tipo": "FLOAT64"
+      }
+    ],
+    "dicionario": [
+      {
+        "coluna": "id_tabela",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "nome_coluna",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "chave",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "cobertura_temporal",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "valor",
+        "tipo": "STRING"
+      }
+    ],
+    "meta_alfabetizacao_brasil": [
+      {
+        "coluna": "ano",
+        "tipo": "INT64"
+      },
+      {
+        "coluna": "rede",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "taxa_alfabetizacao",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2024",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2025",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2026",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2027",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2028",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2029",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2030",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "percentual_participacao",
+        "tipo": "FLOAT64"
+      }
+    ],
+    "meta_alfabetizacao_municipio": [
+      {
+        "coluna": "ano",
+        "tipo": "INT64"
+      },
+      {
+        "coluna": "id_municipio",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "rede",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "taxa_alfabetizacao",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2024",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2025",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2026",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2027",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2028",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2029",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2030",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "nivel_alfabetizacao",
+        "tipo": "INT64"
+      },
+      {
+        "coluna": "percentual_participacao",
+        "tipo": "FLOAT64"
+      }
+    ],
+    "meta_alfabetizacao_uf": [
+      {
+        "coluna": "ano",
+        "tipo": "INT64"
+      },
+      {
+        "coluna": "sigla_uf",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "rede",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "taxa_alfabetizacao",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2024",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2025",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2026",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2027",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2028",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2029",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "meta_alfabetizacao_2030",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "percentual_participacao",
+        "tipo": "FLOAT64"
+      }
+    ],
+    "municipio": [
+      {
+        "coluna": "ano",
+        "tipo": "INT64"
+      },
+      {
+        "coluna": "id_municipio",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "serie",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "rede",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "taxa_alfabetizacao",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "media_portugues",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_0",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_1",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_2",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_3",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_4",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_5",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_6",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_7",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_8",
+        "tipo": "FLOAT64"
+      }
+    ],
+    "uf": [
+      {
+        "coluna": "ano",
+        "tipo": "INT64"
+      },
+      {
+        "coluna": "sigla_uf",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "serie",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "rede",
+        "tipo": "STRING"
+      },
+      {
+        "coluna": "taxa_alfabetizacao",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "media_portugues",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_0",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_1",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_2",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_3",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_4",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_5",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_6",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_7",
+        "tipo": "FLOAT64"
+      },
+      {
+        "coluna": "proporcao_aluno_nivel_8",
+        "tipo": "FLOAT64"
+      }
+    ]
+  },
+  "tamanhos": {
+    "alunos": {
+      "linhas": 3867999,
+      "bytes": 268545240
+    },
+    "dicionario": {
+      "linhas": 27,
+      "bytes": 1174
+    },
+    "meta_alfabetizacao_brasil": {
+      "linhas": 3,
+      "bytes": 270
+    },
+    "meta_alfabetizacao_municipio": {
+      "linhas": 10704,
+      "bytes": 1151232
+    },
+    "meta_alfabetizacao_uf": {
+      "linhas": 81,
+      "bytes": 7374
+    },
+    "municipio": {
+      "linhas": 23995,
+      "bytes": 1832061
+    },
+    "uf": {
+      "linhas": 145,
+      "bytes": 10330
+    }
+  },
+  "valores": {
+    "alunos": {
+      "alfabetizado": [
+        "0",
+        "1"
+      ],
+      "ano": [
+        "2023",
+        "2024"
+      ],
+      "preenchimento_caderno": [
+        "0",
+        "1"
+      ],
+      "presenca": [
+        "0",
+        "1"
+      ],
+      "rede": [
+        "2",
+        "3",
+        "4"
+      ],
+      "serie": [
+        "2"
+      ]
+    },
+    "meta_alfabetizacao_brasil": {
+      "ano": [
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "rede": [
+        "Pública"
+      ]
+    },
+    "meta_alfabetizacao_municipio": {
+      "ano": [
+        "2023",
+        "2024"
+      ],
+      "rede": [
+        "Municipal"
+      ]
+    },
+    "meta_alfabetizacao_uf": {
+      "ano": [
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "rede": [
+        "Pública"
+      ],
+      "sigla_uf": [
+        "AC",
+        "AL",
+        "AM",
+        "AP",
+        "BA",
+        "CE",
+        "DF",
+        "ES",
+        "GO",
+        "MA",
+        "MG",
+        "MS",
+        "MT",
+        "PA",
+        "PB",
+        "PE",
+        "PI",
+        "PR",
+        "RJ",
+        "RN",
+        "RO",
+        "RR",
+        "RS",
+        "SC",
+        "SE",
+        "SP",
+        "TO"
+      ]
+    },
+    "municipio": {
+      "ano": [
+        "2023",
+        "2024"
+      ],
+      "rede": [
+        "0",
+        "2",
+        "3",
+        "5"
+      ],
+      "serie": [
+        "2"
+      ]
+    },
+    "uf": {
+      "ano": [
+        "2023",
+        "2024"
+      ],
+      "rede": [
+        "0",
+        "2",
+        "3",
+        "5"
+      ],
+      "serie": [
+        "2"
+      ],
+      "sigla_uf": [
+        "AC",
+        "AL",
+        "AM",
+        "AP",
+        "BA",
+        "CE",
+        "ES",
+        "GO",
+        "MA",
+        "MG",
+        "MS",
+        "MT",
+        "PA",
+        "PB",
+        "PE",
+        "PI",
+        "PR",
+        "RJ",
+        "RN",
+        "RO",
+        "RS",
+        "SC",
+        "SE",
+        "SP",
+        "TO"
+      ]
+    }
+  },
+  "n_distintos": {
+    "alunos": {
+      "alfabetizado": 2,
+      "ano": 2,
+      "preenchimento_caderno": 2,
+      "presenca": 2,
+      "rede": 3,
+      "serie": 1
+    },
+    "meta_alfabetizacao_brasil": {
+      "ano": 3,
+      "rede": 1
+    },
+    "meta_alfabetizacao_municipio": {
+      "ano": 2,
+      "rede": 1
+    },
+    "meta_alfabetizacao_uf": {
+      "ano": 3,
+      "rede": 1,
+      "sigla_uf": 27
+    },
+    "municipio": {
+      "ano": 2,
+      "rede": 4,
+      "serie": 1
+    },
+    "uf": {
+      "ano": 2,
+      "rede": 4,
+      "serie": 1,
+      "sigla_uf": 25
+    }
+  },
+  "comparacao": {
+    "ano": {
+      "tabelas": [
+        "alunos",
+        "meta_alfabetizacao_brasil",
+        "meta_alfabetizacao_municipio",
+        "meta_alfabetizacao_uf",
+        "municipio",
+        "uf"
+      ],
+      "diverge": true,
+      "ausentes_por_tabela": {
+        "alunos": [
+          "2025"
+        ],
+        "meta_alfabetizacao_municipio": [
+          "2025"
+        ],
+        "municipio": [
+          "2025"
+        ],
+        "uf": [
+          "2025"
+        ]
+      }
+    },
+    "rede": {
+      "tabelas": [
+        "alunos",
+        "meta_alfabetizacao_brasil",
+        "meta_alfabetizacao_municipio",
+        "meta_alfabetizacao_uf",
+        "municipio",
+        "uf"
+      ],
+      "diverge": true,
+      "ausentes_por_tabela": {
+        "alunos": [
+          "0",
+          "5",
+          "Municipal",
+          "Pública"
+        ],
+        "meta_alfabetizacao_brasil": [
+          "0",
+          "2",
+          "3",
+          "4",
+          "5",
+          "Municipal"
+        ],
+        "meta_alfabetizacao_municipio": [
+          "0",
+          "2",
+          "3",
+          "4",
+          "5",
+          "Pública"
+        ],
+        "meta_alfabetizacao_uf": [
+          "0",
+          "2",
+          "3",
+          "4",
+          "5",
+          "Municipal"
+        ],
+        "municipio": [
+          "4",
+          "Municipal",
+          "Pública"
+        ],
+        "uf": [
+          "4",
+          "Municipal",
+          "Pública"
+        ]
+      }
+    },
+    "serie": {
+      "tabelas": [
+        "alunos",
+        "municipio",
+        "uf"
+      ],
+      "diverge": false,
+      "ausentes_por_tabela": {}
+    },
+    "sigla_uf": {
+      "tabelas": [
+        "meta_alfabetizacao_uf",
+        "uf"
+      ],
+      "diverge": true,
+      "ausentes_por_tabela": {
+        "uf": [
+          "DF",
+          "RR"
+        ]
+      }
+    }
+  },
+  "dry_run_alunos": 268545240,
+  "dicionario": [
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "alfabetizado",
+      "chave": "0",
+      "cobertura_temporal": "(1)",
+      "valor": "Não"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "alfabetizado",
+      "chave": "1",
+      "cobertura_temporal": "(1)",
+      "valor": "Sim"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "preenchimento_caderno",
+      "chave": "0",
+      "cobertura_temporal": "(1)",
+      "valor": "Prova não preenchida"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "preenchimento_caderno",
+      "chave": "1",
+      "cobertura_temporal": "(1)",
+      "valor": "Prova preenchida"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "presenca",
+      "chave": "0",
+      "cobertura_temporal": "(1)",
+      "valor": "Ausente"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "presenca",
+      "chave": "1",
+      "cobertura_temporal": "(1)",
+      "valor": "Presente"
+    },
+    {
+      "id_tabela": "uf",
+      "nome_coluna": "rede",
+      "chave": "0",
+      "cobertura_temporal": "(1)",
+      "valor": "Total (Federal, Estadual, Municipal e Privada)"
+    },
+    {
+      "id_tabela": "municipio",
+      "nome_coluna": "rede",
+      "chave": "0",
+      "cobertura_temporal": "(1)",
+      "valor": "Total (Federal, Estadual, Municipal e Privada)"
+    },
+    {
+      "id_tabela": "uf",
+      "nome_coluna": "rede",
+      "chave": "1",
+      "cobertura_temporal": "(1)",
+      "valor": "Federal"
+    },
+    {
+      "id_tabela": "municipio",
+      "nome_coluna": "rede",
+      "chave": "1",
+      "cobertura_temporal": "(1)",
+      "valor": "Federal"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "rede",
+      "chave": "1",
+      "cobertura_temporal": "(1)",
+      "valor": "Federal"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "rede",
+      "chave": "2",
+      "cobertura_temporal": "(1)",
+      "valor": "Estadual"
+    },
+    {
+      "id_tabela": "municipio",
+      "nome_coluna": "rede",
+      "chave": "2",
+      "cobertura_temporal": "(1)",
+      "valor": "Estadual"
+    },
+    {
+      "id_tabela": "uf",
+      "nome_coluna": "rede",
+      "chave": "2",
+      "cobertura_temporal": "(1)",
+      "valor": "Estadual"
+    },
+    {
+      "id_tabela": "uf",
+      "nome_coluna": "rede",
+      "chave": "3",
+      "cobertura_temporal": "(1)",
+      "valor": "Municipal"
+    },
+    {
+      "id_tabela": "municipio",
+      "nome_coluna": "rede",
+      "chave": "3",
+      "cobertura_temporal": "(1)",
+      "valor": "Municipal"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "rede",
+      "chave": "3",
+      "cobertura_temporal": "(1)",
+      "valor": "Municipal"
+    },
+    {
+      "id_tabela": "uf",
+      "nome_coluna": "rede",
+      "chave": "4",
+      "cobertura_temporal": "(1)",
+      "valor": "Privada"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "rede",
+      "chave": "4",
+      "cobertura_temporal": "(1)",
+      "valor": "Privada"
+    },
+    {
+      "id_tabela": "municipio",
+      "nome_coluna": "rede",
+      "chave": "4",
+      "cobertura_temporal": "(1)",
+      "valor": "Privada"
+    },
+    {
+      "id_tabela": "municipio",
+      "nome_coluna": "rede",
+      "chave": "5",
+      "cobertura_temporal": "(1)",
+      "valor": "Pública (Estadual e Municipal)"
+    },
+    {
+      "id_tabela": "uf",
+      "nome_coluna": "rede",
+      "chave": "5",
+      "cobertura_temporal": "(1)",
+      "valor": "Pública (Estadual e Municipal)"
+    },
+    {
+      "id_tabela": "municipio",
+      "nome_coluna": "rede",
+      "chave": "6",
+      "cobertura_temporal": "(1)",
+      "valor": "Pública (Federal, Estadual e Municipal)"
+    },
+    {
+      "id_tabela": "uf",
+      "nome_coluna": "rede",
+      "chave": "6",
+      "cobertura_temporal": "(1)",
+      "valor": "Pública (Federal, Estadual e Municipal)"
+    },
+    {
+      "id_tabela": "municipio",
+      "nome_coluna": "serie",
+      "chave": "2",
+      "cobertura_temporal": "(1)",
+      "valor": "2° ano do Ensino Fundamental"
+    },
+    {
+      "id_tabela": "uf",
+      "nome_coluna": "serie",
+      "chave": "2",
+      "cobertura_temporal": "(1)",
+      "valor": "2° ano do Ensino Fundamental"
+    },
+    {
+      "id_tabela": "alunos",
+      "nome_coluna": "serie",
+      "chave": "2",
+      "cobertura_temporal": "(1)",
+      "valor": "2° ano do Ensino Fundamental"
+    }
+  ]
+}

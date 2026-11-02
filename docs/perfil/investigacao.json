@@ -1,0 +1,960 @@
+{
+  "rede_meta_uf": [
+    {
+      "rede": "0",
+      "pares": 1,
+      "taxa_igual": 1
+    },
+    {
+      "rede": "2",
+      "pares": 46,
+      "taxa_igual": 0
+    },
+    {
+      "rede": "3",
+      "pares": 49,
+      "taxa_igual": 5
+    },
+    {
+      "rede": "5",
+      "pares": 49,
+      "taxa_igual": 42
+    }
+  ],
+  "rede_meta_municipio": [
+    {
+      "rede": "0",
+      "pares": 389,
+      "taxa_igual": 380
+    },
+    {
+      "rede": "2",
+      "pares": 1998,
+      "taxa_igual": 5
+    },
+    {
+      "rede": "3",
+      "pares": 10654,
+      "taxa_igual": 6620
+    },
+    {
+      "rede": "5",
+      "pares": 10125,
+      "taxa_igual": 5285
+    }
+  ],
+  "meta_municipio_sem_par": [
+    {
+      "ano": 2023,
+      "metas": 5352,
+      "sem_resultado_rede_3": 50
+    },
+    {
+      "ano": 2024,
+      "metas": 5352,
+      "sem_resultado_rede_3": 0
+    }
+  ],
+  "df_rr_municipio": [
+    {
+      "cod_uf": "53",
+      "ano": 2024,
+      "rede": "2",
+      "linhas": 1
+    },
+    {
+      "cod_uf": "53",
+      "ano": 2024,
+      "rede": "5",
+      "linhas": 1
+    }
+  ],
+  "df_rr_alunos": [
+    {
+      "cod_uf": "53",
+      "ano": 2024,
+      "linhas": 27698
+    }
+  ],
+  "df_rr_meta_uf": [
+    {
+      "ano": 2023,
+      "sigla_uf": "DF",
+      "rede": "Pública",
+      "taxa_alfabetizacao": null,
+      "meta_alfabetizacao_2030": 80.0
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "DF",
+      "rede": "Pública",
+      "taxa_alfabetizacao": 59.13,
+      "meta_alfabetizacao_2030": 80.0
+    },
+    {
+      "ano": 2025,
+      "sigla_uf": "DF",
+      "rede": "Pública",
+      "taxa_alfabetizacao": 65.0,
+      "meta_alfabetizacao_2030": 80.0
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "RR",
+      "rede": "Pública",
+      "taxa_alfabetizacao": null,
+      "meta_alfabetizacao_2030": null
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "RR",
+      "rede": "Pública",
+      "taxa_alfabetizacao": null,
+      "meta_alfabetizacao_2030": null
+    },
+    {
+      "ano": 2025,
+      "sigla_uf": "RR",
+      "rede": "Pública",
+      "taxa_alfabetizacao": 57.0,
+      "meta_alfabetizacao_2030": 80.0
+    }
+  ],
+  "meta_brasil": [
+    {
+      "ano": 2023,
+      "rede": "Pública",
+      "taxa_alfabetizacao": 55.9,
+      "meta_alfabetizacao_2024": 59.9,
+      "meta_alfabetizacao_2025": 63.77,
+      "meta_alfabetizacao_2026": 67.47,
+      "meta_alfabetizacao_2027": 70.97,
+      "meta_alfabetizacao_2028": 74.23,
+      "meta_alfabetizacao_2029": 77.24,
+      "meta_alfabetizacao_2030": 80.0,
+      "percentual_participacao": 86.0
+    },
+    {
+      "ano": 2024,
+      "rede": "Pública",
+      "taxa_alfabetizacao": 59.2,
+      "meta_alfabetizacao_2024": 59.9,
+      "meta_alfabetizacao_2025": 63.77,
+      "meta_alfabetizacao_2026": 67.47,
+      "meta_alfabetizacao_2027": 70.97,
+      "meta_alfabetizacao_2028": 74.23,
+      "meta_alfabetizacao_2029": 77.24,
+      "meta_alfabetizacao_2030": 80.0,
+      "percentual_participacao": 87.37
+    },
+    {
+      "ano": 2025,
+      "rede": "Pública",
+      "taxa_alfabetizacao": 66.0,
+      "meta_alfabetizacao_2024": 60.0,
+      "meta_alfabetizacao_2025": 64.0,
+      "meta_alfabetizacao_2026": 67.0,
+      "meta_alfabetizacao_2027": 71.0,
+      "meta_alfabetizacao_2028": 74.0,
+      "meta_alfabetizacao_2029": 77.0,
+      "meta_alfabetizacao_2030": 80.0,
+      "percentual_participacao": 88.0
+    }
+  ],
+  "nivel_alfabetizacao": [
+    {
+      "ano": 2023,
+      "nivel_alfabetizacao": null,
+      "linhas": 120,
+      "taxa_min": null,
+      "taxa_max": null
+    },
+    {
+      "ano": 2023,
+      "nivel_alfabetizacao": 0,
+      "linhas": 863,
+      "taxa_min": 4.4,
+      "taxa_max": 40.0
+    },
+    {
+      "ano": 2023,
+      "nivel_alfabetizacao": 1,
+      "linhas": 738,
+      "taxa_min": 40.0,
+      "taxa_max": 50.0
+    },
+    {
+      "ano": 2023,
+      "nivel_alfabetizacao": 2,
+      "linhas": 930,
+      "taxa_min": 50.0,
+      "taxa_max": 60.0
+    },
+    {
+      "ano": 2023,
+      "nivel_alfabetizacao": 3,
+      "linhas": 947,
+      "taxa_min": 60.0,
+      "taxa_max": 70.0
+    },
+    {
+      "ano": 2023,
+      "nivel_alfabetizacao": 4,
+      "linhas": 836,
+      "taxa_min": 70.1,
+      "taxa_max": 80.0
+    },
+    {
+      "ano": 2023,
+      "nivel_alfabetizacao": 5,
+      "linhas": 918,
+      "taxa_min": 80.0,
+      "taxa_max": 100.0
+    },
+    {
+      "ano": 2024,
+      "nivel_alfabetizacao": 0,
+      "linhas": 742,
+      "taxa_min": 4.4,
+      "taxa_max": 39.99
+    },
+    {
+      "ano": 2024,
+      "nivel_alfabetizacao": 1,
+      "linhas": 691,
+      "taxa_min": 40.0,
+      "taxa_max": 49.96
+    },
+    {
+      "ano": 2024,
+      "nivel_alfabetizacao": 2,
+      "linhas": 853,
+      "taxa_min": 50.0,
+      "taxa_max": 59.97
+    },
+    {
+      "ano": 2024,
+      "nivel_alfabetizacao": 3,
+      "linhas": 951,
+      "taxa_min": 60.0,
+      "taxa_max": 69.98
+    },
+    {
+      "ano": 2024,
+      "nivel_alfabetizacao": 4,
+      "linhas": 974,
+      "taxa_min": 70.0,
+      "taxa_max": 79.97
+    },
+    {
+      "ano": 2024,
+      "nivel_alfabetizacao": 5,
+      "linhas": 1141,
+      "taxa_min": 80.0,
+      "taxa_max": 100.0
+    }
+  ],
+  "nulos_meta_municipio": [
+    {
+      "ano": 2023,
+      "linhas": 5352,
+      "municipios": 5352,
+      "taxa_nula": 120,
+      "meta_2030_nula": 0
+    },
+    {
+      "ano": 2024,
+      "linhas": 5352,
+      "municipios": 5352,
+      "taxa_nula": 0,
+      "meta_2030_nula": 0
+    }
+  ],
+  "chaves_municipio": [
+    {
+      "ano": 2023,
+      "rede": "2",
+      "linhas": 1149,
+      "municipios": 1149,
+      "taxa_nula": 0
+    },
+    {
+      "ano": 2023,
+      "rede": "3",
+      "linhas": 5448,
+      "municipios": 5448,
+      "taxa_nula": 0
+    },
+    {
+      "ano": 2023,
+      "rede": "5",
+      "linhas": 4950,
+      "municipios": 4950,
+      "taxa_nula": 0
+    },
+    {
+      "ano": 2024,
+      "rede": "0",
+      "linhas": 398,
+      "municipios": 398,
+      "taxa_nula": 0
+    },
+    {
+      "ano": 2024,
+      "rede": "2",
+      "linhas": 1086,
+      "municipios": 1086,
+      "taxa_nula": 0
+    },
+    {
+      "ano": 2024,
+      "rede": "3",
+      "linhas": 5448,
+      "municipios": 5448,
+      "taxa_nula": 0
+    },
+    {
+      "ano": 2024,
+      "rede": "5",
+      "linhas": 5516,
+      "municipios": 5516,
+      "taxa_nula": 0
+    }
+  ],
+  "alunos_universo": [
+    {
+      "ano": 2023,
+      "presenca": "0",
+      "preenchimento_caderno": "0",
+      "alfabetizado_nulo": false,
+      "proficiencia_nula": true,
+      "linhas": 244381,
+      "soma_pesos": null
+    },
+    {
+      "ano": 2023,
+      "presenca": "1",
+      "preenchimento_caderno": "0",
+      "alfabetizado_nulo": false,
+      "proficiencia_nula": true,
+      "linhas": 249,
+      "soma_pesos": null
+    },
+    {
+      "ano": 2023,
+      "presenca": "1",
+      "preenchimento_caderno": "1",
+      "alfabetizado_nulo": false,
+      "proficiencia_nula": false,
+      "linhas": 1502809,
+      "soma_pesos": 1743618.0
+    },
+    {
+      "ano": 2024,
+      "presenca": "0",
+      "preenchimento_caderno": "0",
+      "alfabetizado_nulo": false,
+      "proficiencia_nula": true,
+      "linhas": 267772,
+      "soma_pesos": null
+    },
+    {
+      "ano": 2024,
+      "presenca": "1",
+      "preenchimento_caderno": "0",
+      "alfabetizado_nulo": false,
+      "proficiencia_nula": true,
+      "linhas": 936,
+      "soma_pesos": null
+    },
+    {
+      "ano": 2024,
+      "presenca": "1",
+      "preenchimento_caderno": "1",
+      "alfabetizado_nulo": false,
+      "proficiencia_nula": false,
+      "linhas": 1851852,
+      "soma_pesos": 2109175.0
+    }
+  ],
+  "alunos_duplicidade": [
+    {
+      "ano": 2023,
+      "linhas": 1747439,
+      "alunos_distintos": 1747439
+    },
+    {
+      "ano": 2024,
+      "linhas": 2120560,
+      "alunos_distintos": 2120560
+    }
+  ],
+  "rede_meta_municipio_por_ano": [
+    {
+      "ano": 2023,
+      "rede": "3",
+      "pares": 5302,
+      "igual_001": 1268,
+      "igual_005": 5046,
+      "igual_arredondado_1": 5010,
+      "maior_diferenca": 36.07
+    },
+    {
+      "ano": 2023,
+      "rede": "5",
+      "pares": 4773,
+      "igual_001": 895,
+      "igual_005": 3574,
+      "igual_arredondado_1": 3546,
+      "maior_diferenca": 48.36
+    },
+    {
+      "ano": 2024,
+      "rede": "3",
+      "pares": 5352,
+      "igual_001": 5352,
+      "igual_005": 5352,
+      "igual_arredondado_1": 1022,
+      "maior_diferenca": 0.0
+    },
+    {
+      "ano": 2024,
+      "rede": "5",
+      "pares": 5352,
+      "igual_001": 4390,
+      "igual_005": 4404,
+      "igual_arredondado_1": 697,
+      "maior_diferenca": 37.7
+    }
+  ],
+  "rede_meta_uf_por_ano": [
+    {
+      "ano": 2023,
+      "sigla_uf": "BA",
+      "taxa_meta": 36.8,
+      "taxa_uf_rede_5": 36.78,
+      "diferenca": 0.02
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "CE",
+      "taxa_meta": 84.5,
+      "taxa_uf_rede_5": 84.46,
+      "diferenca": 0.04
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "GO",
+      "taxa_meta": 66.7,
+      "taxa_uf_rede_5": 66.74,
+      "diferenca": -0.04
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "MT",
+      "taxa_meta": 55.06,
+      "taxa_uf_rede_5": 55.03,
+      "diferenca": 0.03
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "PA",
+      "taxa_meta": 48.4,
+      "taxa_uf_rede_5": 48.38,
+      "diferenca": 0.02
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "PE",
+      "taxa_meta": 59.0,
+      "taxa_uf_rede_5": 58.95,
+      "diferenca": 0.05
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "RS",
+      "taxa_meta": 63.4,
+      "taxa_uf_rede_5": 63.43,
+      "diferenca": -0.03
+    }
+  ],
+  "df_2024_municipio_vs_meta_uf": [
+    {
+      "ano": 2024,
+      "rede": "2",
+      "taxa_municipio_brasilia": 59.13,
+      "taxa_meta_uf_df": 59.13
+    },
+    {
+      "ano": 2024,
+      "rede": "5",
+      "taxa_municipio_brasilia": 59.13,
+      "taxa_meta_uf_df": 59.13
+    }
+  ],
+  "df_rr_meta_municipio": [],
+  "rede_0_uf": [
+    {
+      "ano": 2024,
+      "sigla_uf": "BA",
+      "taxa_alfabetizacao": 35.96
+    }
+  ],
+  "meta_municipio_2023_divergentes": [
+    {
+      "divergentes": 186,
+      "bate_rede_5": 2,
+      "bate_rede_2": 0,
+      "sem_rede_5": 14,
+      "em_sp": 17,
+      "exemplos": [
+        {
+          "id_municipio": "2305100",
+          "taxa_meta": 55.6,
+          "r3": 91.67,
+          "r5": 91.67,
+          "r2": null
+        },
+        {
+          "id_municipio": "2304905",
+          "taxa_meta": 83.1,
+          "r3": 99.15,
+          "r5": 99.15,
+          "r2": null
+        },
+        {
+          "id_municipio": "5106752",
+          "taxa_meta": 68.0,
+          "r3": 65.94,
+          "r5": 65.94,
+          "r2": null
+        },
+        {
+          "id_municipio": "4217006",
+          "taxa_meta": 65.9,
+          "r3": 65.85,
+          "r5": 65.73,
+          "r2": 63.64
+        },
+        {
+          "id_municipio": "3151008",
+          "taxa_meta": 69.4,
+          "r3": 69.35,
+          "r5": 69.35,
+          "r2": null
+        },
+        {
+          "id_municipio": "3509908",
+          "taxa_meta": 64.9,
+          "r3": 64.85,
+          "r5": null,
+          "r2": null
+        },
+        {
+          "id_municipio": "3115359",
+          "taxa_meta": 67.4,
+          "r3": 67.35,
+          "r5": 67.35,
+          "r2": null
+        },
+        {
+          "id_municipio": "3204302",
+          "taxa_meta": 68.4,
+          "r3": 68.35,
+          "r5": 68.35,
+          "r2": null
+        },
+        {
+          "id_municipio": "4109609",
+          "taxa_meta": 67.4,
+          "r3": 67.35,
+          "r5": 67.35,
+          "r2": null
+        },
+        {
+          "id_municipio": "3201159",
+          "taxa_meta": 67.4,
+          "r3": 67.35,
+          "r5": 72.75,
+          "r2": 83.37
+        }
+      ]
+    }
+  ],
+  "meta_municipio_2023_divergentes_por_uf": [
+    {
+      "cod_uf": "31",
+      "divergentes": 26
+    },
+    {
+      "cod_uf": "29",
+      "divergentes": 21
+    },
+    {
+      "cod_uf": "35",
+      "divergentes": 17
+    },
+    {
+      "cod_uf": "27",
+      "divergentes": 12
+    },
+    {
+      "cod_uf": "26",
+      "divergentes": 11
+    },
+    {
+      "cod_uf": "23",
+      "divergentes": 9
+    },
+    {
+      "cod_uf": "24",
+      "divergentes": 9
+    },
+    {
+      "cod_uf": "25",
+      "divergentes": 8
+    },
+    {
+      "cod_uf": "21",
+      "divergentes": 7
+    },
+    {
+      "cod_uf": "17",
+      "divergentes": 7
+    },
+    {
+      "cod_uf": "41",
+      "divergentes": 7
+    },
+    {
+      "cod_uf": "22",
+      "divergentes": 7
+    },
+    {
+      "cod_uf": "51",
+      "divergentes": 7
+    },
+    {
+      "cod_uf": "15",
+      "divergentes": 6
+    },
+    {
+      "cod_uf": "43",
+      "divergentes": 6
+    },
+    {
+      "cod_uf": "32",
+      "divergentes": 5
+    },
+    {
+      "cod_uf": "50",
+      "divergentes": 5
+    },
+    {
+      "cod_uf": "42",
+      "divergentes": 5
+    },
+    {
+      "cod_uf": "52",
+      "divergentes": 3
+    },
+    {
+      "cod_uf": "28",
+      "divergentes": 3
+    },
+    {
+      "cod_uf": "33",
+      "divergentes": 2
+    },
+    {
+      "cod_uf": "16",
+      "divergentes": 1
+    },
+    {
+      "cod_uf": "13",
+      "divergentes": 1
+    },
+    {
+      "cod_uf": "11",
+      "divergentes": 1
+    }
+  ],
+  "uf_rede_5_faltante": [
+    {
+      "ano": 2023,
+      "sigla_uf": "AC",
+      "taxa_meta": null,
+      "redes_em_uf": []
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "DF",
+      "taxa_meta": null,
+      "redes_em_uf": []
+    },
+    {
+      "ano": 2023,
+      "sigla_uf": "RR",
+      "taxa_meta": null,
+      "redes_em_uf": []
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "DF",
+      "taxa_meta": 59.13,
+      "redes_em_uf": []
+    },
+    {
+      "ano": 2024,
+      "sigla_uf": "RR",
+      "taxa_meta": null,
+      "redes_em_uf": []
+    }
+  ],
+  "diretorio_colunas": [
+    {
+      "table_name": "municipio",
+      "ordinal_position": 1,
+      "column_name": "id_municipio",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 2,
+      "column_name": "id_municipio_6",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 3,
+      "column_name": "id_municipio_tse",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 4,
+      "column_name": "id_municipio_rf",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 5,
+      "column_name": "id_municipio_bcb",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 6,
+      "column_name": "nome",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 7,
+      "column_name": "capital_uf",
+      "data_type": "INT64"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 8,
+      "column_name": "id_comarca",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 9,
+      "column_name": "id_regiao_saude",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 10,
+      "column_name": "nome_regiao_saude",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 11,
+      "column_name": "id_regiao_imediata",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 12,
+      "column_name": "nome_regiao_imediata",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 13,
+      "column_name": "id_regiao_intermediaria",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 14,
+      "column_name": "nome_regiao_intermediaria",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 15,
+      "column_name": "id_microrregiao",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 16,
+      "column_name": "nome_microrregiao",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 17,
+      "column_name": "id_mesorregiao",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 18,
+      "column_name": "nome_mesorregiao",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 19,
+      "column_name": "id_regiao_metropolitana",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 20,
+      "column_name": "nome_regiao_metropolitana",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 21,
+      "column_name": "ddd",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 22,
+      "column_name": "id_uf",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 23,
+      "column_name": "sigla_uf",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 24,
+      "column_name": "nome_uf",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 25,
+      "column_name": "nome_regiao",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 26,
+      "column_name": "amazonia_legal",
+      "data_type": "INT64"
+    },
+    {
+      "table_name": "municipio",
+      "ordinal_position": 27,
+      "column_name": "centroide",
+      "data_type": "GEOGRAPHY"
+    },
+    {
+      "table_name": "uf",
+      "ordinal_position": 1,
+      "column_name": "id_uf",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "uf",
+      "ordinal_position": 2,
+      "column_name": "sigla",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "uf",
+      "ordinal_position": 3,
+      "column_name": "nome",
+      "data_type": "STRING"
+    },
+    {
+      "table_name": "uf",
+      "ordinal_position": 4,
+      "column_name": "regiao",
+      "data_type": "STRING"
+    }
+  ],
+  "_execucoes": [
+    {
+      "id_execucao": "20261102T165554Z_c2e682",
+      "job_ids": [
+        "b35225f8-5f07-4156-a50b-990fe85caf9c",
+        "6896a9e2-d079-40bc-a9d1-148ecfb426c3",
+        "a3d9c715-4287-4aae-b079-09dfbd411f00",
+        "5328e2e3-c9e4-4614-a9d5-ffa2faa231c0",
+        "15f9260c-7ff1-49ec-8d29-95900d00d142",
+        "1b163316-66bf-46da-b49b-5047d94ca44a",
+        "7ed9d60e-34ed-492f-910a-4a1f40b1e646",
+        "4d92fcb4-579e-4bb2-8860-8f91378b2a7d",
+        "d9df90ae-a69d-4241-a16f-643abba2a212",
+        "d060f2a1-b7a2-4daf-b6d9-c9dd7c8eb384",
+        "330f534c-062e-44d3-bb99-211e01e6b247",
+        "53075d91-64c6-4469-b76d-27bc2413faf5"
+      ]
+    },
+    {
+      "id_execucao": "20261102T194947Z_acb82c",
+      "consultas": [
+        "rede_meta_municipio_por_ano",
+        "rede_meta_uf_por_ano",
+        "df_2024_municipio_vs_meta_uf",
+        "df_rr_meta_municipio",
+        "rede_0_uf"
+      ],
+      "job_ids": [
+        "1130b417-6e59-4fac-857d-c468bf88ae0a",
+        "f7f87a30-99f2-4d14-b356-640ba9b4dc5a",
+        "ca85a396-8136-4c57-8585-13af0cdbfcab",
+        "6158d5d4-543e-475d-8832-5494bd2fa536",
+        "e7a58af3-3a73-4129-820b-ccfd1660eade"
+      ]
+    },
+    {
+      "id_execucao": "20261102T195613Z_d251e8",
+      "consultas": [
+        "meta_municipio_2023_divergentes",
+        "meta_municipio_2023_divergentes_por_uf",
+        "uf_rede_5_faltante"
+      ],
+      "job_ids": [
+        "a1afe67f-b270-47dc-9da8-878508069962",
+        "ba299e10-6df9-449f-9246-33e5272c8f0d",
+        "1ac3af07-558e-45b4-a4de-bbd0fda931b1"
+      ]
+    },
+    {
+      "id_execucao": "20261102T200538Z_a5c219",
+      "consultas": [
+        "diretorio_colunas"
+      ],
+      "job_ids": [
+        "0ecc490c-d159-463c-835c-84dde23a8c9e"
+      ]
+    }
+  ]
+}

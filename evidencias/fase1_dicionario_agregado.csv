@@ -1,0 +1,15 @@
+nome_coluna,chave,significados,valores,tabelas
+alfabetizado,0,1,Não,alunos
+alfabetizado,1,1,Sim,alunos
+preenchimento_caderno,0,1,Prova não preenchida,alunos
+preenchimento_caderno,1,1,Prova preenchida,alunos
+presenca,0,1,Ausente,alunos
+presenca,1,1,Presente,alunos
+rede,0,1,"Total (Federal, Estadual, Municipal e Privada)","uf, municipio"
+rede,1,1,Federal,"uf, municipio, alunos"
+rede,2,1,Estadual,"alunos, municipio, uf"
+rede,3,1,Municipal,"uf, municipio, alunos"
+rede,4,1,Privada,"uf, alunos, municipio"
+rede,5,1,Pública (Estadual e Municipal),"municipio, uf"
+rede,6,1,"Pública (Federal, Estadual e Municipal)","municipio, uf"
+serie,2,1,2° ano do Ensino Fundamental,"municipio, uf, alunos"

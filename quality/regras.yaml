@@ -1,0 +1,462 @@
+# Regras de qualidade da Silver. Cada regra é uma consulta que devolve UM número
+# (valor_medido), comparado com o limiar pelo operador (=, <=, >=).
+#
+# bloqueante: se reprovar, a tabela não é publicada e a pipeline para com erro.
+# informativa: só fica registrada em ops.qualidade.
+#
+# Marcadores: {tabela} = tabela de staging que está sendo validada; {bronze}, {silver}
+# e {carga_<tabela>} como nos SQLs da Silver. As regras de uma mesma tabela rodam numa
+# única query (o BigQuery cobra no mínimo 10 MB por tabela referenciada em cada query).
+#
+# Limiares de cobertura vêm do que foi medido em docs/investigacao.md.
+
+regras:
+  # ------------------------------------------------------------------ dicionario
+  - nome: dicionario_vazio
+    tabela: dicionario
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1
+    descricao: Sem dicionário não há tradução de código.
+    sql: SELECT COUNT(*) FROM {tabela}
+
+  - nome: dicionario_chave_duplicada
+    tabela: dicionario
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Cada (id_tabela, nome_coluna, chave) aparece uma vez.
+    sql: >-
+      SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%s|%s|%s', id_tabela, nome_coluna, chave))
+      FROM {tabela}
+
+  - nome: dicionario_significado_conflitante
+    tabela: dicionario
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: >-
+      Um mesmo código não pode ter descrições diferentes entre tabelas (silver.rede
+      usa uma tradução só para alunos, uf e municipio).
+    sql: >-
+      SELECT COUNT(*) FROM (
+        SELECT nome_coluna, chave FROM {tabela}
+        GROUP BY 1, 2 HAVING COUNT(DISTINCT descricao) > 1)
+
+  # ---------------------------------------------------------- diretorio_municipio
+  - nome: diretorio_cobertura
+    tabela: diretorio_municipio
+    severidade: bloqueante
+    operador: ">="
+    limiar: 5570
+    descricao: O IBGE tem 5.571 municípios (carga 20261102T200747Z_3176ea); menos que 5.570 indica carga parcial.
+    sql: SELECT COUNT(*) FROM {tabela}
+
+  - nome: diretorio_chave_duplicada
+    tabela: diretorio_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: id_municipio único.
+    sql: SELECT COUNT(*) - COUNT(DISTINCT id_municipio) FROM {tabela}
+
+  - nome: diretorio_id_invalido
+    tabela: diretorio_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: id_municipio é o código IBGE de 7 dígitos.
+    sql: SELECT COUNTIF(id_municipio IS NULL OR LENGTH(id_municipio) != 7 OR NOT REGEXP_CONTAINS(id_municipio, r'^[0-9]+$')) FROM {tabela}
+
+  - nome: diretorio_sem_uf
+    tabela: diretorio_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Todo município precisa de UF e região.
+    sql: SELECT COUNTIF(sigla_uf IS NULL OR regiao IS NULL) FROM {tabela}
+
+  # ------------------------------------------------------------------------ rede
+  - nome: rede_desconhecida
+    tabela: rede
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Código de rede novo no dicionário, sem rede_padrao definida em silver/rede.sql.
+    sql: SELECT COUNTIF(rede_padrao = 'desconhecido') FROM {tabela}
+
+  - nome: rede_valor_duplicado
+    tabela: rede
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Cada (origem, valor) mapeia para uma rede só; duplicata multiplicaria linhas nos joins.
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%s|%s', origem, valor)) FROM {tabela}
+
+  # ---------------------------------------------------------------- resultado_uf
+  - nome: resultado_uf_vazio
+    tabela: resultado_uf
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1
+    descricao: Tabela de resultado não pode sair vazia.
+    sql: SELECT COUNT(*) FROM {tabela}
+
+  - nome: resultado_uf_chave_duplicada
+    tabela: resultado_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Chave (ano, sigla_uf, rede, serie) única.
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s|%s|%s', ano, sigla_uf, rede, serie)) FROM {tabela}
+
+  - nome: resultado_uf_rede_desconhecida
+    tabela: resultado_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Código de rede sem tradução.
+    sql: SELECT COUNTIF(rede_padrao = 'desconhecido') FROM {tabela}
+
+  - nome: resultado_uf_serie_sem_traducao
+    tabela: resultado_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Código de série sem entrada no dicionário.
+    sql: SELECT COUNTIF(serie_descricao IS NULL) FROM {tabela}
+
+  - nome: resultado_uf_taxa_fora_0_100
+    tabela: resultado_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Taxa é percentual.
+    sql: SELECT COUNTIF(taxa_alfabetizacao < 0 OR taxa_alfabetizacao > 100) FROM {tabela}
+
+  - nome: resultado_uf_match_diretorio
+    tabela: resultado_uf
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1.0
+    descricao: Taxa de correspondência do join sigla_uf -> diretório (nome_uf, região). Toda UF existe no diretório.
+    sql: SELECT SAFE_DIVIDE(COUNTIF(nome_uf IS NOT NULL), COUNT(*)) FROM {tabela}
+
+  - nome: resultado_uf_taxa_nula
+    tabela: resultado_uf
+    severidade: informativa
+    operador: "="
+    limiar: 0
+    descricao: Linhas de resultado sem taxa (nulo preservado).
+    sql: SELECT COUNTIF(taxa_alfabetizacao IS NULL) FROM {tabela}
+
+  # --------------------------------------------------------- resultado_municipio
+  - nome: resultado_municipio_vazio
+    tabela: resultado_municipio
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1
+    descricao: Tabela de resultado não pode sair vazia.
+    sql: SELECT COUNT(*) FROM {tabela}
+
+  - nome: resultado_municipio_chave_duplicada
+    tabela: resultado_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Chave (ano, id_municipio, rede, serie) única.
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s|%s|%s', ano, id_municipio, rede, serie)) FROM {tabela}
+
+  - nome: resultado_municipio_id_invalido
+    tabela: resultado_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: id_municipio é o código IBGE de 7 dígitos.
+    sql: SELECT COUNTIF(id_municipio IS NULL OR LENGTH(id_municipio) != 7 OR NOT REGEXP_CONTAINS(id_municipio, r'^[0-9]+$')) FROM {tabela}
+
+  - nome: resultado_municipio_rede_desconhecida
+    tabela: resultado_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Código de rede sem tradução.
+    sql: SELECT COUNTIF(rede_padrao = 'desconhecido') FROM {tabela}
+
+  - nome: resultado_municipio_serie_sem_traducao
+    tabela: resultado_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Código de série sem entrada no dicionário.
+    sql: SELECT COUNTIF(serie_descricao IS NULL) FROM {tabela}
+
+  - nome: resultado_municipio_taxa_fora_0_100
+    tabela: resultado_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Taxa é percentual.
+    sql: SELECT COUNTIF(taxa_alfabetizacao < 0 OR taxa_alfabetizacao > 100) FROM {tabela}
+
+  - nome: resultado_municipio_match_diretorio
+    tabela: resultado_municipio
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1.0
+    descricao: Taxa de correspondência do join id_municipio -> diretório. Município fora do diretório ficaria sem UF.
+    sql: SELECT SAFE_DIVIDE(COUNTIF(sigla_uf IS NOT NULL), COUNT(*)) FROM {tabela}
+
+  - nome: resultado_municipio_taxa_nula
+    tabela: resultado_municipio
+    severidade: informativa
+    operador: "="
+    limiar: 0
+    descricao: Linhas de resultado sem taxa (nulo preservado).
+    sql: SELECT COUNTIF(taxa_alfabetizacao IS NULL) FROM {tabela}
+
+  # ----------------------------------------------------------------- meta_brasil
+  - nome: meta_brasil_vazio
+    tabela: meta_brasil
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1
+    descricao: Meta nacional precisa existir.
+    sql: SELECT COUNT(*) FROM {tabela}
+
+  - nome: meta_brasil_chave_duplicada
+    tabela: meta_brasil
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Uma publicação por (ano, rede).
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s', ano, rede_origem)) FROM {tabela}
+
+  - nome: meta_brasil_rede_desconhecida
+    tabela: meta_brasil
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Texto de rede da meta sem mapeamento em silver/rede.sql.
+    sql: SELECT COUNTIF(rede_padrao = 'desconhecido') FROM {tabela}
+
+  - nome: meta_brasil_fora_0_100
+    tabela: meta_brasil
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Metas são percentuais.
+    sql: >-
+      SELECT COUNTIF(EXISTS(SELECT 1 FROM UNNEST([meta_alfabetizacao_2024, meta_alfabetizacao_2025,
+        meta_alfabetizacao_2026, meta_alfabetizacao_2027, meta_alfabetizacao_2028,
+        meta_alfabetizacao_2029, meta_alfabetizacao_2030]) AS v WHERE v < 0 OR v > 100))
+      FROM {tabela}
+
+  - nome: meta_brasil_2030_diferente_de_80
+    tabela: meta_brasil
+    severidade: informativa
+    operador: "="
+    limiar: 0
+    descricao: A meta pactuada de 2030 para a rede pública é 80 (enunciado e fonte).
+    sql: SELECT COUNTIF(meta_alfabetizacao_2030 IS DISTINCT FROM 80) FROM {tabela}
+
+  # -------------------------------------------------------------------- meta_uf
+  - nome: meta_uf_cobertura
+    tabela: meta_uf
+    severidade: bloqueante
+    operador: ">="
+    limiar: 27
+    descricao: As 27 UFs têm linha de meta em cada publicação; o mínimo por ano é 27.
+    sql: SELECT MIN(n) FROM (SELECT COUNT(DISTINCT sigla_uf) AS n FROM {tabela} GROUP BY ano)
+
+  - nome: meta_uf_chave_duplicada
+    tabela: meta_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Uma linha por (ano, sigla_uf, rede).
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s|%s', ano, sigla_uf, rede_origem)) FROM {tabela}
+
+  - nome: meta_uf_rede_desconhecida
+    tabela: meta_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Texto de rede da meta sem mapeamento em silver/rede.sql.
+    sql: SELECT COUNTIF(rede_padrao = 'desconhecido') FROM {tabela}
+
+  - nome: meta_uf_fora_0_100
+    tabela: meta_uf
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Metas são percentuais.
+    sql: >-
+      SELECT COUNTIF(EXISTS(SELECT 1 FROM UNNEST([meta_alfabetizacao_2024, meta_alfabetizacao_2025,
+        meta_alfabetizacao_2026, meta_alfabetizacao_2027, meta_alfabetizacao_2028,
+        meta_alfabetizacao_2029, meta_alfabetizacao_2030]) AS v WHERE v < 0 OR v > 100))
+      FROM {tabela}
+
+  - nome: meta_uf_match_diretorio
+    tabela: meta_uf
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1.0
+    descricao: Taxa de correspondência do join sigla_uf -> diretório.
+    sql: SELECT SAFE_DIVIDE(COUNTIF(nome_uf IS NOT NULL), COUNT(*)) FROM {tabela}
+
+  - nome: meta_uf_sem_meta_2030
+    tabela: meta_uf
+    severidade: informativa
+    operador: "<="
+    limiar: 2
+    descricao: >-
+      Linhas sem meta 2030. Limiar = valor medido (RR nas publicações de 2023 e 2024;
+      docs/investigacao.md §4): reprova só se aumentar.
+    sql: SELECT COUNTIF(meta_alfabetizacao_2030 IS NULL) FROM {tabela}
+
+  # ------------------------------------------------------------- meta_municipio
+  - nome: meta_municipio_vazio
+    tabela: meta_municipio
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1
+    descricao: Meta municipal precisa existir.
+    sql: SELECT COUNT(*) FROM {tabela}
+
+  - nome: meta_municipio_chave_duplicada
+    tabela: meta_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Uma linha por (ano, id_municipio, rede).
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s|%s', ano, id_municipio, rede_origem)) FROM {tabela}
+
+  - nome: meta_municipio_id_invalido
+    tabela: meta_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: id_municipio é o código IBGE de 7 dígitos.
+    sql: SELECT COUNTIF(id_municipio IS NULL OR LENGTH(id_municipio) != 7 OR NOT REGEXP_CONTAINS(id_municipio, r'^[0-9]+$')) FROM {tabela}
+
+  - nome: meta_municipio_rede_desconhecida
+    tabela: meta_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Texto de rede da meta sem mapeamento em silver/rede.sql.
+    sql: SELECT COUNTIF(rede_padrao = 'desconhecido') FROM {tabela}
+
+  - nome: meta_municipio_fora_0_100
+    tabela: meta_municipio
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Metas são percentuais.
+    sql: >-
+      SELECT COUNTIF(EXISTS(SELECT 1 FROM UNNEST([meta_alfabetizacao_2024, meta_alfabetizacao_2025,
+        meta_alfabetizacao_2026, meta_alfabetizacao_2027, meta_alfabetizacao_2028,
+        meta_alfabetizacao_2029, meta_alfabetizacao_2030]) AS v WHERE v < 0 OR v > 100))
+      FROM {tabela}
+
+  - nome: meta_municipio_match_diretorio
+    tabela: meta_municipio
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1.0
+    descricao: Taxa de correspondência do join id_municipio -> diretório.
+    sql: SELECT SAFE_DIVIDE(COUNTIF(sigla_uf IS NOT NULL), COUNT(*)) FROM {tabela}
+
+  - nome: meta_municipio_taxa_referencia_nula
+    tabela: meta_municipio
+    severidade: informativa
+    operador: "<="
+    limiar: 120
+    descricao: >-
+      Metas sem taxa de referência. Limiar = valor medido (publicação de 2023;
+      docs/investigacao.md §3): reprova só se aumentar.
+    sql: SELECT COUNTIF(taxa_referencia_meta IS NULL) FROM {tabela}
+
+  # ------------------------------------------------------------ alunos_avaliados
+  - nome: alunos_avaliados_vazio
+    tabela: alunos_avaliados
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1
+    descricao: Universo avaliado não pode sair vazio.
+    sql: SELECT COUNT(*) FROM {tabela}
+
+  - nome: alunos_avaliados_chave_duplicada
+    tabela: alunos_avaliados
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: id_aluno único dentro do ano (§7).
+    sql: SELECT COUNT(*) - COUNT(DISTINCT FORMAT('%d|%s', ano, id_aluno)) FROM {tabela}
+
+  - nome: alunos_avaliados_rede_desconhecida
+    tabela: alunos_avaliados
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Código de rede sem tradução.
+    sql: SELECT COUNTIF(rede_padrao = 'desconhecido') FROM {tabela}
+
+  - nome: alunos_avaliados_peso_invalido
+    tabela: alunos_avaliados
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Todo avaliado precisa de peso amostral positivo (é o denominador da taxa).
+    sql: SELECT COUNTIF(peso_aluno IS NULL OR peso_aluno <= 0) FROM {tabela}
+
+  - nome: alunos_avaliados_alfabetizado_desconhecido
+    tabela: alunos_avaliados
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: alfabetizado fora de '0'/'1' vira nulo e precisa ter contagem zero.
+    sql: SELECT COUNTIF(alfabetizado IS NULL) FROM {tabela}
+
+  - nome: alunos_avaliados_match_diretorio
+    tabela: alunos_avaliados
+    severidade: bloqueante
+    operador: ">="
+    limiar: 1.0
+    descricao: Taxa de correspondência do join id_municipio -> diretório.
+    sql: SELECT SAFE_DIVIDE(COUNTIF(sigla_uf IS NOT NULL), COUNT(*)) FROM {tabela}
+
+  - nome: alunos_codigo_fora_do_dicionario
+    tabela: alunos_avaliados
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: >-
+      presenca, preenchimento_caderno e alfabetizado da Bronze só podem ter códigos do
+      dicionário; um código novo mudaria o filtro do universo avaliado sem aviso.
+    sql: >-
+      SELECT COUNT(*) FROM {bronze}.alunos AS a
+      WHERE {carga_alunos} AND (
+        a.presenca IS NULL OR a.preenchimento_caderno IS NULL OR a.alfabetizado IS NULL
+        OR a.presenca NOT IN (SELECT chave FROM {silver}.dicionario WHERE id_tabela = 'alunos' AND nome_coluna = 'presenca')
+        OR a.preenchimento_caderno NOT IN (SELECT chave FROM {silver}.dicionario WHERE id_tabela = 'alunos' AND nome_coluna = 'preenchimento_caderno')
+        OR a.alfabetizado NOT IN (SELECT chave FROM {silver}.dicionario WHERE id_tabela = 'alunos' AND nome_coluna = 'alfabetizado'))
+
+  - nome: alunos_avaliados_proficiencia_nula
+    tabela: alunos_avaliados
+    severidade: informativa
+    operador: "="
+    limiar: 0
+    descricao: Aluno avaliado sem proficiência (nulo preservado).
+    sql: SELECT COUNTIF(proficiencia IS NULL) FROM {tabela}
+
+  - nome: alunos_avaliados_proporcao_do_total
+    tabela: alunos_avaliados
+    severidade: informativa
+    operador: ">="
+    limiar: 0.8
+    descricao: Avaliados / registros na Bronze (86% em 2023 e 87% em 2024; §7). Queda forte indica mudança na codificação de presença.
+    sql: >-
+      SELECT SAFE_DIVIDE((SELECT COUNT(*) FROM {tabela}),
+                         (SELECT COUNT(*) FROM {bronze}.alunos WHERE {carga_alunos}))
