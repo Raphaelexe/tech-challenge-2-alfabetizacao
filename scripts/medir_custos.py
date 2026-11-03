@@ -3,7 +3,8 @@
 Coleta, sem estimar nada:
 - bytes faturados e duração da execução bem-sucedida mais recente de cada etapa
   (ops.execucoes), e o total por camada;
-- armazenamento lógico e físico de cada tabela (INFORMATION_SCHEMA.TABLE_STORAGE);
+- armazenamento lógico e físico de cada tabela, pela API de metadados
+  (INFORMATION_SCHEMA.TABLE_STORAGE dá 403 neste projeto);
 - volume de mensagens do Pub/Sub, pelo que a assinatura gravou em bronze.eventos_stream;
 - tamanho dos arquivos Parquet exportados para o bucket (prefixo gold/).
 
@@ -46,15 +47,6 @@ def consultas(s: Settings) -> dict[str, str]:
                    SUM(bytes_faturados) AS bytes_faturados,
                    MIN(inicio) AS primeira, MAX(inicio) AS ultima
             FROM {execucoes}""",
-        "armazenamento": f"""
-            SELECT table_schema AS dataset, table_name AS tabela,
-                   total_rows AS linhas,
-                   total_logical_bytes, active_logical_bytes, long_term_logical_bytes,
-                   total_physical_bytes
-            FROM `{s.gcp_project}`.`region-{s.bq_location.lower()}`.INFORMATION_SCHEMA.TABLE_STORAGE
-            WHERE table_schema IN ('{s.ds_bronze}', '{s.ds_silver}', '{s.ds_gold}', '{s.ds_ops}')
-              AND NOT deleted
-            ORDER BY dataset, tabela""",
         "pubsub": f"""
             SELECT COUNT(*) AS mensagens, SUM(BYTE_LENGTH(data)) AS bytes_dados,
                    SUM(BYTE_LENGTH(data) + IFNULL(BYTE_LENGTH(attributes), 0)) AS bytes_com_atributos,
@@ -93,6 +85,9 @@ def main() -> None:
             r = cliente.executar(sql)
             reg.acumular(r)
             resultado[nome] = r.linhas
+        resultado["armazenamento"] = [
+            t for ds in (s.ds_bronze, s.ds_silver, s.ds_gold, s.ds_ops) for t in cliente.armazenamento(ds)
+        ]
         resultado["bucket"] = tamanho_bucket(s)
         resultado["_execucao"] = {"id_execucao": reg.id_execucao, "job_ids": reg.job_ids}
 
@@ -100,9 +95,10 @@ def main() -> None:
     destino.write_text(json.dumps(resultado, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
 
     total = resultado["total_geral"][0]
-    log.info("execuções: %s | faturado no total: %s | bucket gold/: %s",
+    armazenado = sum(t["bytes_logicos"] or 0 for t in resultado["armazenamento"])
+    log.info("execuções: %s | faturado no total: %s | BigQuery armazenado: %s | bucket gold/: %s",
              total["execucoes"], formatar_bytes(total["bytes_faturados"]),
-             formatar_bytes(resultado["bucket"]["bytes_total"]))
+             formatar_bytes(armazenado), formatar_bytes(resultado["bucket"]["bytes_total"]))
     log.info("salvo em %s", destino.relative_to(RAIZ))
 
 

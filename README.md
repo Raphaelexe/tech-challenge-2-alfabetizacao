@@ -1,85 +1,187 @@
 # Pipeline Híbrido para Análise da Alfabetização no Brasil
 
-Tech Challenge — POS TECH, Fase 2. Pipeline medalhão (Bronze, Silver, Gold) no GCP,
-com ingestão batch e streaming dos dados do Indicador Criança Alfabetizada
-(dataset `br_inep_avaliacao_alfabetizacao` da Base dos Dados).
+Tech Challenge da POS TECH, Fase 2. É uma pipeline medalhão (Bronze, Silver, Gold) no GCP
+que integra, com ingestão batch e streaming, os dados do Indicador Criança Alfabetizada
+(dataset `br_inep_avaliacao_alfabetizacao` da Base dos Dados). A pipeline valida a
+qualidade antes de publicar cada camada, mede o próprio custo e avisa por e-mail quando
+falha.
 
-> **Status:** fase 1 implementada e executada (fundação, perfil e investigação da fonte).
-> Ingestão Bronze implementada e executada duas vezes
-> (`evidencias/fase2_bronze_duas_cargas_municipio.csv`). Silver e regras de qualidade
-> implementadas e executadas (`evidencias/fase2_silver_qualidade.csv`: 51 regras, 44
-> bloqueantes aprovadas), com falha demonstrada (`evidencias/fase2_pipeline_falhou.jpg`).
-> Gold implementada e executada: 6 tabelas publicadas e exportadas em Parquet para o bucket
-> (execuções `20261102T230818Z_2d4702` e `20261102T232157Z_b0292a`). Streaming e alertas
-> Streaming implementado e executado (`evidencias/fase3_streaming_terminal.txt`). Alerta por
-> e-mail implementado e testado (`evidencias/fase4_falha_email.jpg`).
+**Vídeo executivo:** _link a incluir_
 
-## O que já existe
+| Resultado | Onde ver |
+| --- | --- |
+| Taxa nacional de 2024 recalculada dos microdados: **59,20**, contra **59,2** oficial | [Gold](#gold), `gold.validacao_microdado` |
+| 87 regras de qualidade (69 bloqueantes) e falha demonstrada, com publicação barrada | [Qualidade de dados](#qualidade-de-dados) |
+| Streaming: 626 mensagens = 588 válidas + 26 duplicadas + 12 inválidas, sem perda nem duplicação | [Streaming](#streaming) |
+| Alerta por e-mail em menos de 1 minuto após a falha | [Monitoramento](#monitoramento) |
+| Custo projetado em produção: ≈ US$ 5,20/mês sem cota gratuita, US$ 0 com ela | [FinOps](#finops) |
+| Base de features para a fase 3, sem vazamento de alvo, exportada em Parquet | [Aplicação em IA](#aplicação-em-ia) |
+
+## Contexto do problema
+
+O **Compromisso Nacional Criança Alfabetizada** reúne União, estados, DF e municípios
+em torno de um objetivo: que toda criança esteja alfabetizada ao fim do 2º ano do ensino
+fundamental. Em 2023, a Pesquisa Alfabetiza Brasil, do INEP, fixou o ponto de corte de
+**743 pontos** na escala de proficiência do Saeb. O **Indicador Criança Alfabetizada** é o
+percentual de alunos avaliados que atinge esse patamar, calculado com o peso amostral.
+
+Entender o indicador exige cruzar fontes que não falam a mesma língua: microdados de
+alunos, resultados por município e UF, e as metas nacional, estaduais e municipais.
+Elas usam códigos diferentes para a mesma rede, cobrem anos diferentes e têm lacunas.
+Esta pipeline faz essa integração com regras explícitas e verificáveis. Ela produz uma
+camada analítica confiável para acompanhar as metas, estudar desigualdades e treinar o
+modelo preditivo da fase 3.
+
+**Meta de 2030: duas leituras, separadas em todo o projeto.**
+- **Meta pactuada** (fonte): a trajetória anual de 2024 a 2030 publicada nas tabelas de
+  meta. Para a rede pública, `meta_alfabetizacao_2030 = 80`. Toda comparação "atingiu ×
+  não atingiu" e toda distância até a meta usam esta leitura (`distancia_meta_pactuada`,
+  `distancia_meta_pactuada_2030`).
+- **Cenário aspiracional:** a universalização (100%). Aparece só na coluna
+  `distancia_cenario_aspiracional` e nunca é usada como meta.
+
+## Arquitetura
+
+O diagrama mostra só o que foi implementado e executado.
+
+```mermaid
+flowchart LR
+    subgraph BD["Base dos Dados · BigQuery público (US)"]
+        INEP["br_inep_avaliacao_alfabetizacao<br/>alunos · municipio · uf · 3 metas · dicionario"]
+        DIR["br_bd_diretorios_brasil<br/>municipio"]
+    end
+
+    subgraph GCP["Projeto do grupo · BigQuery (US)"]
+        BR[("bronze · 8 tabelas<br/>append por dt_ingestao")]
+        SV[("silver · 9 tabelas")]
+        GD[("gold · 6 tabelas")]
+        BRS[("bronze.eventos_stream")]
+        SVE[("silver.eventos_validos<br/>silver.eventos_quarentena")]
+        VW["gold.indicador_municipio_atualizado<br/>VIEW · coluna origem"]
+        OPS[("ops · execucoes · qualidade<br/>marca_dagua_stream")]
+    end
+
+    PROD["streaming/produtor.py<br/>eventos simulados"] --> PS[["Pub/Sub<br/>eventos-alfabetizacao"]]
+    PS -- "assinatura BigQuery" --> BRS
+    INEP -- "INSERT colunas explícitas" --> BR
+    DIR --> BR
+    BR -- "staging → regras → copy" --> SV
+    SV -- "staging → regras → copy" --> GD
+    GD -- "EXPORT DATA Parquet" --> GCS[("Cloud Storage<br/>gold/")]
+    BRS -- "micro_lote.py · marca d'água<br/>validação · dedup · MERGE" --> SVE
+    SVE --> VW
+    GD --> VW
+
+    BR -.-> OPS
+    SV -.-> OPS
+    GD -.-> OPS
+    SVE -.-> OPS
+    OPS -. "WARNING+" .-> LOG["Cloud Logging"]
+    LOG --> MON["Cloud Monitoring<br/>política de alerta"] --> MAIL["e-mail do time"]
+```
+
+**Fluxo batch** (`pipeline/orquestrador.py`):
+1. **Bronze:** copia as 7 tabelas da fonte e o diretório de municípios, em append, com
+   `dt_ingestao`, `id_execucao` e `fonte`. O esquema e a contagem são conferidos.
+2. **Silver:** traduz os códigos pelo dicionário, cria a chave comum de rede
+   (`rede_padrao`), liga município a UF e filtra os alunos avaliados.
+3. **Gold:** compara resultado com meta pactuada, valida os microdados contra a taxa
+   publicada e monta a base de features. Exporta tudo em Parquet.
+
+Em Silver e Gold, cada tabela é gravada numa staging, passa pelas regras de qualidade e
+só então é publicada. Se uma regra bloqueante reprova, a execução para, e a versão
+anterior continua publicada.
+
+**Fluxo streaming** (`streaming/`):
+1. O produtor publica no Pub/Sub, e uma assinatura BigQuery grava cada mensagem como
+   chegou.
+2. O micro-lote processa a janela nova (marca d'água): valida, manda inválidos para a
+   quarentena e deduplica por `id_evento` com `MERGE` idempotente.
+3. A view da Gold junta oficial e simulado, separados pela coluna `origem`.
+
+Toda etapa grava métricas em `ops`. Os erros vão ao Cloud Logging, e uma política do
+Cloud Monitoring manda e-mail.
+
+## Tecnologias
+
+| Tecnologia | Para quê | Por quê | Situação |
+| --- | --- | --- | --- |
+| BigQuery | Todas as camadas, em SQL | A fonte já está no BigQuery público, então não há download nem transferência entre nuvens. O SQL cobre Bronze, Silver e Gold sem cluster para gerenciar | Implementado |
+| Pub/Sub + assinatura BigQuery | Mensageria do streaming e recepção na Bronze | Entrega pelo menos uma vez, com `message_id` e `publish_time`, sem código consumidor para manter | Implementado |
+| Cloud Storage | Exportação da Gold em Parquet (Snappy) | Formato aberto, para a fase 3 ler sem depender do BigQuery | Implementado |
+| Cloud Logging + Cloud Monitoring | Registro de erros e alerta por e-mail | Política baseada em log dispara a cada erro, sem esperar agregação | Implementado |
+| Python 3.11+ (`google-cloud-bigquery`, `-pubsub`, `-logging`, `-storage`) | Orquestrador, travas de custo, regras de qualidade, produtor, micro-lote | Lógica testável fora da nuvem | Implementado |
+| YAML (`quality/regras.yaml`) | Declaração das 87 regras | Regras revisáveis sem mexer em código | Implementado |
+| pytest | 238 testes das funções de transformação, validação e orquestração | Rodam sem GCP (BigQuery simulado) | Implementado |
+| Bash + `gcloud`/`bq` (`infra/setup.sh`) | Criação idempotente de datasets, tabelas, bucket, tópico, assinatura e permissão | Reproduzível em um comando | Implementado |
+| Cloud Scheduler + Cloud Run Job | Agendamento do batch e do micro-lote | Hoje a execução é manual | Evolução futura |
+| Terraform | Infraestrutura declarativa, com estado e diff | Hoje são scripts idempotentes | Evolução futura |
+| Looker Studio | Painel sobre a Gold e `ops` | Hoje as consultas são feitas no console | Evolução futura |
+
+## Estrutura do repositório
 
 | Componente | Arquivo | O que faz |
 | --- | --- | --- |
-| Configuração | `config/settings.py`, `.env.example` | Único lugar com IDs de projeto, bucket e tópico |
-| Infraestrutura | `infra/setup.sh`, `infra/sql/ops.sql` | Cria datasets `bronze`, `silver`, `gold`, `ops` (US), tabelas de observabilidade, bucket e tópico Pub/Sub |
-| Cliente BigQuery | `pipeline/bq.py` | Dry run antes de toda query, aborta acima de `MAX_BYTES_BILLED` e executa com `maximum_bytes_billed` |
-| Registro de execução | `pipeline/ops.py` | Grava cada etapa em `ops.execucoes` (duração, bytes, job ids, status); falhas são gravadas e propagadas |
-| Perfil da fonte | `scripts/perfil_fonte.py` | Colunas reais, tamanhos, valores distintos de `rede`/`serie`/etc. e divergências entre tabelas |
-| Investigação da fonte | `scripts/investigar_fonte.py` | Consultas que respondem as divergências do perfil (ver [Achados do perfil](#achados-do-perfil-etapa-1)) |
-| Ingestão Bronze | `pipeline/orquestrador.py`, `pipeline/bronze/*.sql`, `infra/sql/bronze.sql` | Carga append das 7 tabelas e do diretório de municípios, com contrato de esquema, conferência de contagem e retentativa |
-| Silver | `pipeline/silver/*.sql`, `pipeline/orquestrador.py` | 9 tabelas tratadas, gravadas em staging e publicadas só depois das regras |
+| Configuração | `config/settings.py`, `.env.example` | Único lugar com IDs de projeto, bucket, tópico e datasets da fonte |
+| Infraestrutura | `infra/setup.sh`, `infra/sql/*.sql` | Datasets `bronze`, `silver`, `gold`, `ops` (US), tabelas Bronze, streaming e observabilidade, bucket, tópico, assinatura e permissão |
+| Cliente BigQuery | `pipeline/bq.py` | Dry run antes de toda consulta, aborta acima de `MAX_BYTES_BILLED` e executa com `maximum_bytes_billed` |
+| Registro de execução | `pipeline/ops.py` | Grava cada etapa em `ops.execucoes`; falhas são gravadas e propagadas |
+| Orquestrador | `pipeline/orquestrador.py` | Bronze → Silver → Gold, com dependência, retentativa, staging e publicação condicionada às regras |
+| Bronze, Silver, Gold | `pipeline/bronze/*.sql`, `pipeline/silver/*.sql`, `pipeline/gold/*.sql` | Um SQL por tabela |
 | Qualidade | `quality/regras.yaml`, `quality/runner.py` | Regras bloqueantes e informativas, gravadas em `ops.qualidade` |
-| Gold | `pipeline/gold/*.sql`, `pipeline/orquestrador.py` | 6 tabelas analíticas, com as mesmas regras antes de publicar e exportação Parquet para o bucket |
-| Streaming | `streaming/produtor.py`, `streaming/micro_lote.py`, `streaming/sql/*.sql`, `infra/sql/streaming.sql` | Pub/Sub → assinatura BigQuery → micro-lote com validação, quarentena, deduplicação, latência e Gold com `origem` |
-| Logs e alerta | `pipeline/observabilidade.py`, `scripts/criar_alerta.py` | Erros no Cloud Logging e política de alerta do Cloud Monitoring que manda e-mail |
-| Demonstração de falha | `scripts/injetar_falha/*.sql`, `--injetar-falha` | Injeta dado ruim na staging para provar que a regra bloqueante impede a publicação |
-| Testes | `tests/test_fase1.py`, `tests/test_bronze.py`, `tests/test_silver.py`, `tests/test_gold.py`, `tests/test_streaming.py`, `tests/test_observabilidade.py` | 238 testes, sem dependência do GCP |
+| Streaming | `streaming/produtor.py`, `streaming/micro_lote.py`, `streaming/sql/*.sql` | Produtor, micro-lote e Gold do streaming |
+| Logs e alerta | `pipeline/observabilidade.py`, `scripts/criar_alerta.py` | Erros no Cloud Logging e alerta do Cloud Monitoring |
+| Perfil e investigação da fonte | `scripts/perfil_fonte.py`, `scripts/investigar_fonte.py`, `docs/dicionario_dados.md`, `docs/investigacao.md` | Colunas reais, divergências entre tabelas e anomalias apuradas |
+| Medição de custo | `scripts/medir_custos.py` | Bytes faturados, armazenamento, volume do Pub/Sub e do bucket |
+| Demonstração de falha | `scripts/injetar_falha/*.sql`, `--injetar-falha` | Dado ruim na staging, para provar que a regra bloqueante impede a publicação |
+| Testes | `tests/` | 238 testes, sem dependência do GCP |
+| Evidências | `evidencias/` | Prints, saídas de terminal e CSVs das execuções (ver [Evidências](#evidências)) |
+| Plano e decisões | `docs/plano.md` | Roteiro, decisões e medições registradas durante o projeto |
 
 ## Como executar
 
-Pré-requisitos: Python 3.11+, [Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
-e um projeto GCP com faturamento ou sandbox do BigQuery.
+Pré-requisitos:
+- Python 3.11 ou mais novo (o desenvolvimento usou 3.13);
+- [Google Cloud CLI](https://cloud.google.com/sdk/docs/install);
+- um projeto GCP com faturamento ativo. O consumo do projeto fica dentro das cotas
+  gratuitas (ver [FinOps](#finops)).
 
 ```bash
 gcloud auth login
 gcloud auth application-default login
 
-cp .env.example .env      # preencha GCP_PROJECT e GCS_BUCKET
+cp .env.example .env      # preencha GCP_PROJECT, GCS_BUCKET e ALERT_EMAIL
 make setup                # ambiente virtual + dependências
 make testes               # deve passar sem acesso ao GCP
-make infra                # cria os recursos no GCP
-make perfil               # gera docs/dicionario_dados.md e grava em ops.execucoes
-make investigar           # gera docs/perfil/investigacao.json
+make infra                # cria os recursos no GCP (pode rodar de novo: só cria o que falta)
+make alerta               # canal de e-mail + política de alerta
+make perfil               # gera docs/dicionario_dados.md
 make bronze               # carga append das 8 tabelas em bronze.*
 make silver               # Silver: staging -> regras -> publicação
 make gold                 # Gold: staging -> regras -> publicação -> Parquet no bucket
+make produtor             # streaming: 5 eventos/s por 2 min (em um terminal)
+make micro-lote           # streaming: 10 micro-lotes, um por minuto (em outro terminal)
 ```
 
-Para olhar a fonte antes de criar a infraestrutura: `make perfil-sem-ops`.
-
-Sem `make` (comum no Windows), os mesmos passos no Git Bash:
+`make pipeline` roda Bronze, Silver e Gold em sequência. Sem `make` (comum no Windows),
+os mesmos passos no Git Bash:
 
 ```bash
 python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt
 .venv/Scripts/python -m pytest -q
 bash infra/setup.sh
+.venv/Scripts/python -m scripts.criar_alerta
 .venv/Scripts/python -m scripts.perfil_fonte
-.venv/Scripts/python -m scripts.investigar_fonte
-.venv/Scripts/python -m pipeline.orquestrador --camadas bronze   # --tabelas uf municipio
-.venv/Scripts/python -m pipeline.orquestrador --camadas silver
-.venv/Scripts/python -m pipeline.orquestrador --camadas gold
+.venv/Scripts/python -m pipeline.orquestrador                     # bronze, silver e gold
+.venv/Scripts/python -m pipeline.orquestrador --camadas gold --tabelas features_ml
+.venv/Scripts/python -m streaming.produtor --eventos-por-segundo 5 --duracao-s 120
+.venv/Scripts/python -m streaming.micro_lote --lotes 5 --intervalo-s 60
+.venv/Scripts/python -m scripts.medir_custos                      # quantidades para o FinOps
 ```
 
-`infra/setup.sh` pode ser rodado de novo sem risco: ele só cria o que falta (por
-exemplo, as tabelas `bronze.*`, adicionadas depois da fase 1).
-
-### Evidência da fase 1
-
-Depois do `make perfil`, rode no console do BigQuery e salve o print em `evidencias/`:
-
-```sql
-SELECT id_execucao, etapa, status, duracao_s, bytes_faturados, ARRAY_LENGTH(job_ids) AS jobs
-FROM `SEU_PROJETO.ops.execucoes`
-ORDER BY inicio DESC;
-```
+Para olhar a fonte antes de criar a infraestrutura: `make perfil-sem-ops`. Para reproduzir
+a investigação: `python -m scripts.investigar_fonte`, que lê, entre outras, a staging
+`gold.validacao_microdado_stg` deixada por uma execução reprovada.
 
 ## Achados do perfil (etapa 1)
 
@@ -198,7 +300,8 @@ reprovar, levanta `QualidadeBloqueanteError`. Nenhum `except` engole esse erro: 
 `registrar_etapa` grava `status = 'falhou'` em `ops.execucoes` e propaga a exceção.
 
 Na Silver são 51 regras: 44 bloqueantes e 7 informativas. A Gold acrescenta 29 (22
-bloqueantes e 7 informativas; ver [Gold](#gold)), num total de 80.
+bloqueantes e 7 informativas; ver [Gold](#gold)), e o micro-lote do streaming mais 7 (3
+bloqueantes e 4 informativas; ver [Streaming](#streaming)). São 87 no total.
 
 | Tipo | Regras | Severidade |
 | --- | ---: | --- |
@@ -543,6 +646,102 @@ Ficam fora deste alerta:
 - **o micro-lote travar sem erro:** a marca d'água para de avançar. Isso aparece em
   `ops.marca_dagua_stream`, mas também ainda não há alerta automático.
 
+## FinOps
+
+Todos os números abaixo foram **medidos** por `scripts/medir_custos.py` e estão em
+`docs/perfil/medicoes_custo.json`. As fontes são:
+- `ops.execucoes`, para os bytes faturados de cada job;
+- a API de metadados do BigQuery, para o armazenamento;
+- `bronze.eventos_stream`, para o volume do Pub/Sub;
+- a listagem do bucket, para os arquivos Parquet.
+
+O projeto tem faturamento ativo. Todo o desenvolvimento, com 28 execuções e 58 etapas,
+faturou **4,12 GiB** de consultas, dentro da cota gratuita de 1 TiB/mês.
+
+### Práticas aplicadas
+
+| Prática | Onde | Efeito medido |
+| --- | --- | --- |
+| Trava de custo dupla: dry run com teto + `maximum_bytes_billed` | `pipeline/bq.py`, toda consulta | Nenhum job passou do teto de 5 GiB; a etapa mais cara (`silver_alunos_avaliados`, 3 jobs) faturou 724 MiB |
+| Colunas explícitas, sem `SELECT *` | todos os SQLs da Bronze, Silver e Gold | `validacao_microdado` lê 212 MiB dos 294 MiB de `silver.alunos_avaliados` |
+| Partição e cluster | Bronze por `dt_ingestao` (`require_partition_filter` em `alunos`); `alunos_avaliados` por ano; cluster por município/UF | A leitura fica restrita à carga escolhida |
+| Microdados lidos uma vez só na Gold | `validacao_microdado`, reaproveitada por `indicador_brasil` e `features_ml` | 1 leitura de 212 MiB em vez de 3 |
+| Regras de uma tabela numa única consulta | `quality/runner.py` | 10 MiB por tabela, em vez de 10 MiB por regra (87 regras) |
+| Cópia gratuita para publicar | copy job da staging para a tabela final | 0 bytes na publicação |
+| Gold do streaming como VIEW | `gold.indicador_municipio_atualizado` | 0 bytes por lote |
+| Parquet com Snappy para a fase 3 | `EXPORT DATA` da Gold | 6 tabelas com 93.495 linhas em 1,94 MiB no bucket |
+| Só WARNING+ no Cloud Logging | `pipeline/observabilidade.py` | Ingestão de log desprezível |
+| Mesma região (US) da fonte | todos os datasets | Sem transferência entre regiões ou nuvens |
+
+### Quantidades medidas
+
+| Item | Medido |
+| --- | ---: |
+| Pipeline batch completa (Bronze 397 + Silver 961 + Gold 522 MiB) | 1.880 MiB = **1,84 GiB** por execução |
+| Micro-lote com eventos / vazio | **≈ 100 MiB / ≈ 40 MiB** por lote |
+| Armazenamento BigQuery: bronze 1.160, silver 287, gold 11 MiB | **1,42 GiB** |
+| Uma carga de `bronze.alunos` | 573 MiB (fonte: 256 MiB) |
+| Mensagem do Pub/Sub (dados + atributos) | **282 bytes** em média (626 mensagens, 176.607 bytes) |
+| Exportação Parquet da Gold | **1,94 MiB** por execução |
+
+### Estimativa de custo mensal em produção
+
+Cadência pretendida:
+- **batch completo uma vez por mês:** a fonte é anual; uma execução mensal cobre
+  correções e reprocessamento;
+- **micro-lote a cada 5 minutos:** 288 lotes por dia.
+
+Premissas que não vêm da medição, porque o streaming é simulado e não há volume real:
+- há eventos em todos os lotes (pior caso; lote vazio custa 40% do cheio);
+- chega 1 evento por segundo (2,6 milhões por mês).
+
+Preços de lista em US multi-região na data de referência. **Conferir em
+cloud.google.com/pricing na data da entrega.**
+
+| Serviço | Unidade | Quantidade medida → projetada/mês | Preço unitário | Custo mensal projetado |
+| --- | --- | --- | --- | ---: |
+| BigQuery, consultas do batch | TiB faturado | 1,84 GiB × 1 execução = 0,0018 TiB | US$ 6,25/TiB (1º TiB grátis) | US$ 0,01 |
+| BigQuery, consultas do streaming | TiB faturado | 100 MiB × 288 × 30 = 0,82 TiB | US$ 6,25/TiB (1º TiB grátis) | US$ 5,15 |
+| BigQuery, armazenamento ativo lógico | GiB-mês | 1,42 GiB (+0,57 GiB por carga mensal da Bronze) | US$ 0,02/GiB (10 GiB grátis) | US$ 0,03 |
+| BigQuery, armazenamento do streaming | GiB-mês | 282 B × 2,6 mi ≈ 0,68 GiB na Bronze + Silver | US$ 0,02/GiB | US$ 0,01 |
+| Pub/Sub, entrega | TiB | 0,68 GiB | US$ 40/TiB (10 GiB grátis) | US$ 0,03 |
+| Cloud Storage, Parquet da Gold | GiB-mês | 1,94 MiB por exportação | US$ 0,026/GiB | < US$ 0,01 |
+| Cloud Logging | GiB ingerido | só WARNING+: KiB por mês | US$ 0,50/GiB (50 GiB grátis) | US$ 0 |
+| Cloud Monitoring, alerta | política | 1 política, 1 condição | conferir na tabela de preços | a conferir |
+| **Total sem cota gratuita** | | | | **≈ US$ 5,20** |
+| **Total com cota gratuita** | | | | **≈ US$ 0** |
+
+**A cadência do micro-lote é o que define o custo.** O volume de eventos quase não pesa:
+
+| Cadência do micro-lote | Consultas/mês | Custo (cota gratuita aplicada) |
+| --- | ---: | ---: |
+| 1 por minuto | 4,12 TiB | ≈ US$ 19,50 |
+| 1 a cada 5 minutos | 0,82 TiB | US$ 0 |
+| 1 a cada 15 minutos | 0,27 TiB | US$ 0 |
+
+### O que a medição revelou
+
+1. **Piso de 10 MB por tabela.** Em tabelas pequenas, o custo de cada consulta é o
+   mínimo cobrado, e não o volume lido. Por exemplo, a carga do diretório estimou
+   370 KiB e faturou 20 MiB. Por isso as regras foram agrupadas por tabela e a Gold do
+   streaming virou VIEW.
+2. **Colunas de controle custam mais que o dado na Bronze de alunos.** Uma carga de
+   `bronze.alunos` ocupa 573 MiB, contra 256 MiB na fonte. Os 317 MiB a mais são
+   `fonte`, `id_execucao` e `dt_ingestao` repetidos em 3,87 milhões de linhas: cerca de
+   86 bytes por linha, quase todos da `fonte`, um texto de 51 caracteres. No modelo de
+   armazenamento lógico, valor repetido não é comprimido. **Planejado:** cobrar o
+   dataset `bronze` pelo armazenamento físico (comprimido) ou guardar `fonte` como
+   código curto.
+3. **Duas cargas no mesmo dia dobram a leitura da Silver.** As duas cargas de teste
+   ficaram na mesma partição de `dt_ingestao`. Como a tabela não é clusterizada por
+   `id_execucao`, a Silver de alunos leu as duas e faturou 724 MiB. **Planejado:**
+   incluir `id_execucao` no cluster de `bronze.alunos`. Com uma carga por dia, a
+   leitura cai pela metade.
+4. **O armazenamento do streaming não aparece nos metadados.** `bronze.eventos_stream`
+   mostra 0 linhas na API de metadados, porque a assinatura grava pela Storage Write
+   API e os dados ainda estão no buffer de escrita. O volume foi medido por consulta
+   (626 mensagens, 176.607 bytes).
+
 ## Aplicação em IA
 
 `gold.features_ml` tem uma linha por município × ano base *t* (rede municipal). As
@@ -566,20 +765,109 @@ Qualquer projeção até 2030 é cenário, não previsão. As mesmas tabelas ser
 análise de desigualdade: os indicadores por região, UF, capital e Amazônia Legal, e a
 distância de cada município à meta pactuada.
 
-## Decisões já tomadas
+## Decisões arquiteturais
 
-- **Acesso à fonte:** BigQuery público da Base dos Dados, sem download. Não há
-  transferência entre nuvens; o custo é de bytes escaneados, medido por dry run.
-- **Região:** todos os datasets em `US`, a mesma do projeto `basedosdados`. O BigQuery
-  não faz join entre locais diferentes.
-- **Gravação em `ops.execucoes` por load job**, não por streaming insert: é gratuito e
-  funciona no sandbox do BigQuery.
-- **Trava de custo dupla:** dry run com teto no Python e `maximum_bytes_billed` no
-  próprio job, para o caso de a estimativa errar.
+**Forma de acesso à fonte: BigQuery público da Base dos Dados, sem download.**
+- **Por quê:** a fonte já está no BigQuery, na multi-região US. Lendo de lá, a Bronze
+  é um `INSERT ... SELECT` dentro do próprio BigQuery: não há arquivo para baixar,
+  converter e subir, nem uma segunda cópia em outro serviço.
+- **Custo:** paga-se pelos bytes escaneados na leitura, medidos por dry run antes de
+  cada consulta. Uma carga completa da Bronze faturou 397 MiB, dos quais 257 MiB são de
+  `alunos`. Não há transferência entre nuvens nem egress: a origem e o destino estão no
+  mesmo provedor e na mesma região (US). O BigQuery também não faz join entre locais
+  diferentes, por isso todos os datasets estão em US.
+- **Quando a fonte for atualizada:** a próxima execução grava uma carga nova na Bronze,
+  ao lado das anteriores (append por `dt_ingestao` e `id_execucao`). A Silver passa a
+  ler a carga aprovada mais recente, e as versões antigas continuam disponíveis para
+  comparação. Se a fonte mudar o esquema (coluna removida ou com tipo alterado), a
+  carga para antes de gravar. Uma mudança de código (rede nova, por exemplo) reprova uma
+  regra bloqueante da Silver.
+
+| Decisão | Escolha | Por quê | O que custa ou arrisca |
+| --- | --- | --- | --- |
+| Batch × streaming | Batch para as tabelas oficiais; streaming só para eventos simulados de atualização | A fonte oficial é anual; streaming real não faz sentido para ela | Dois caminhos para manter. As diferenças de latência, frequência e garantia estão na [tabela do streaming](#streaming) |
+| Data lake × data warehouse | Warehouse (BigQuery) em todas as camadas; Cloud Storage só para exportar a Gold | Uma ferramenta e SQL em tudo, sem cluster para gerenciar | Menos portável que um lake em Parquet; a exportação da Gold cobre a fase 3 |
+| Escrita na Bronze | Só append (`INSERT ... SELECT` com colunas explícitas); nunca `WRITE_TRUNCATE` nem `CREATE OR REPLACE` | Preserva o histórico: uma execução não apaga a anterior | O armazenamento cresce a cada carga (≈ 585 MiB, medido) |
+| Escrita em Silver e Gold | `CREATE OR REPLACE` em staging, regras, copy job para a final | Reconstruíveis a partir da Bronze; a publicação só acontece se as regras passarem | Staging ocupa espaço até ser removida (é removida quando aprova) |
+| Custo × performance | Partição e cluster; colunas explícitas; microdados lidos uma vez só; regras agrupadas por tabela | O piso de 10 MB por tabela e a tabela de alunos são o que pesa (medido) | Exige disciplina nas consultas; as travas de custo impedem o `SELECT *` acidental |
+| Orquestração | Script Python com dependência entre camadas, retentativa e publicação condicionada | Simples de reproduzir por um avaliador | Sem agendamento: a execução é manual (Cloud Scheduler é evolução futura) |
+| Uma nuvem só (GCP) | Sem multi-cloud | Fonte, processamento e destino no mesmo provedor e região | Nenhum custo de egress, de conciliação de billing ou de dois modelos de IAM |
+| Meta de 2030 | Meta pactuada da fonte para status e distância; 100% só em `distancia_cenario_aspiracional` | Exigência do enunciado; as duas leituras significam coisas diferentes | Nenhum, desde que as colunas tenham nomes distintos |
+
+## Evidências
+
+| O que prova | Arquivo |
+| --- | --- |
+| Registro de execução em `ops.execucoes` (fase 1) | `evidencias/fase1_ops_execucoes.jpg` |
+| Dicionário da fonte agregado por coluna e chave | `evidencias/fase1_dicionario_agregado.csv` |
+| Bronze preserva histórico: duas cargas de `municipio` com 23.995 linhas cada | `evidencias/fase2_bronze_duas_cargas.jpg`, `evidencias/fase2_bronze_duas_cargas_municipio.csv` |
+| Silver executada: etapas e regras | `evidencias/fase2_silver_execucoes.jpg`, `evidencias/fase2_silver_qualidade.csv` |
+| Pipeline falhando numa regra bloqueante, sem publicar a linha ruim | `evidencias/fase2_pipeline_falhou.jpg`, `evidencias/fase2_demonstracao_falha1.jpg` a `falha3.jpg` |
+| Gold: regras da 1ª execução, que reprovou na validação cruzada | `evidencias/fase2_gold_qualidade_1a_execucao.csv` |
+| Gold publicada e exportada em Parquet | `evidencias/fase3_tabela_gold_indicador_brasil.jpg`, `evidencias/fase3_parquet_pasta_gold_bucket.jpg` |
+| Streaming: produtor e 5 micro-lotes | `evidencias/fase3_streaming_terminal.txt` |
+| Alerta por e-mail | `evidencias/fase4_falha_terminal.jpg`, `evidencias/fase4_logs_monitor_erro.jpg`, `evidencias/fase4_logs_monitor_critico.jpg`, `evidencias/fase4_filtro_da_politica.png`, `evidencias/fase4_falha_email.jpg` |
+| Quantidades medidas para o FinOps | `docs/perfil/medicoes_custo.json` |
+| Investigação da fonte | `docs/perfil/investigacao.json`, `docs/investigacao.md` |
+
+Os identificadores das execuções citadas neste README (`id_execucao`) e os job IDs do
+BigQuery estão em `ops.execucoes`.
 
 ## Limitações conhecidas
 
-- `__TABLES__` pode ser bloqueado em alguns projetos; nesse caso o relatório sai sem
-  linhas e tamanhos, e o resto continua.
-- A Bronze guarda uma cópia inteira a cada execução, mesmo que a fonte não tenha
-  mudado: ~260 MiB de armazenamento lógico por carga, quase todo de `alunos`.
+**O que foi simulado.**
+- Os eventos do streaming são simulados: taxa municipal oficial de 2024 mais um ruído,
+  com duplicados e inválidos injetados de propósito. Eles ficam separados do oficial
+  pela coluna `origem` e pelo atributo `origem=simulado`.
+- O volume de eventos usado na projeção de custo (1 por segundo) é premissa, não medição.
+
+**Lacunas da fonte que permaneceram** (apuradas em [docs/investigacao.md](docs/investigacao.md)):
+- **SP 2023** não está nos microdados de alunos. O Brasil 2023 recalculado fica sem SP
+  (+1,56 p.p. sobre o oficial).
+- **RR** não tem resultado em 2023 nem em 2024; **AC** e **DF**, não em 2023. DF 2024 vem
+  de Brasília, o único município da UF.
+- **MS 2023** não traz peso amostral (todo peso = 1).
+- **Dois municípios do CE em 2023** (2305100 e 2304905) têm na tabela `municipio` uma
+  taxa que contradiz os microdados e a tabela de meta. A Gold mantém o número oficial e
+  deixa a divergência visível, mas a coluna de alerta para esses casos é evolução futura.
+- Só há resultados municipais de **2023 e 2024**. O modelo da fase 3 tem um único par
+  de anos para treino, e qualquer projeção até 2030 é cenário, não previsão.
+
+**O que ficou de fora.**
+- **Agendamento:** o batch e o micro-lote são executados manualmente.
+- **Alertas que não cobrem tudo:** não há alerta para a pipeline que deixa de rodar, nem
+  para o micro-lote que trava sem erro.
+- **Dead-letter na assinatura do Pub/Sub:** não configurado. Uma mensagem que o BigQuery
+  recusasse ficaria em retentativa.
+- **Infraestrutura em scripts idempotentes (`infra/setup.sh`), sem Terraform.**
+- **Bronze cresce a cada carga** (≈ 585 MiB), mesmo quando a fonte não mudou. As colunas
+  de controle respondem por 317 MiB de cada carga de `alunos`, e duas cargas no mesmo
+  dia dobram a leitura da Silver (ver [FinOps](#finops)).
+- **Permissões que o projeto não tem:** `INFORMATION_SCHEMA.TABLE_STORAGE` e o
+  `__TABLES__` do dataset de diretórios dão 403. O armazenamento é medido pela API de
+  metadados.
+- **Preços da tabela de FinOps:** são de lista e precisam ser conferidos na data da
+  entrega.
+
+## Evolução futura
+
+Planejado para a próxima etapa, nada disso está implementado:
+1. Cloud Scheduler + Cloud Run Job para o batch (mensal) e o micro-lote (a cada 5 minutos).
+2. Alerta de ausência: nenhuma linha em `ops.execucoes` em 26 h, ou marca d'água parada.
+3. Bronze cobrada por armazenamento físico (comprimido) ou `fonte` como código curto, e
+   `id_execucao` no cluster de `bronze.alunos`.
+4. Coluna de alerta em `gold.indicador_municipio` para resultado que diverge dos
+   microdados.
+5. Dead-letter topic na assinatura BigQuery.
+6. Terraform para a infraestrutura.
+7. Painel no Looker Studio sobre a Gold e as tabelas `ops`.
+
+## Diferenciais do enunciado
+
+| Diferencial | Situação |
+| --- | --- |
+| Validação cruzada microdado × indicador oficial | Implementado: Brasil 2024 recalculado = oficial; diferenças de 2023 investigadas |
+| Orquestração com dependência, retentativa e agendamento | Dependência e retentativa implementadas; agendamento é evolução futura |
+| Infraestrutura como código | Parcial: scripts idempotentes, sem estado nem diff (Terraform é evolução futura) |
+| Testes automatizados das transformações | 238 testes, sem dependência do GCP |
+| Investigação documentada | `docs/investigacao.md`: 10 seções, cada uma com evidência e decisão |

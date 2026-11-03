@@ -423,10 +423,10 @@ Legenda: `[x]` feito · `[~]` código pronto, falta rodar no GCP / gerar evidên
 
 ### Fase 4 — FinOps, documentação e vídeo
 
-- [ ] Medição antes/depois de otimização e tabela de custo preenchida com números de
-  `ops.execucoes`.
-- [ ] README com todas as seções exigidas, usando "planejado" para o que não foi feito.
-- [ ] Diagrama atualizado para refletir só o implementado.
+- [x] Tabela de custo preenchida com números medidos (`scripts/medir_custos.py`,
+  `docs/perfil/medicoes_custo.json`) e projeção para a cadência de produção.
+- [x] README com todas as seções exigidas, usando "planejado" para o que não foi feito (falta só o link do vídeo).
+- [x] Diagrama (Mermaid, no README) refletindo só o implementado.
 - [ ] Pasta `evidencias/` completa: job IDs, contagens, prints, falha demonstrada, e-mail de
   alerta.
 - [ ] Teste de clone limpo.
@@ -616,3 +616,21 @@ match, divergências de chaves, tamanhos de tabela, etc.).
   - **Tempo medido:** erro às 21:31 e e-mail às 21:31 (incidente às 00:31 UTC), ou seja,
     menos de 1 minuto.
   - **Evidências:** `evidencias/fase4_*`.
+- **2026-11-02 — FinOps medido** (`docs/perfil/medicoes_custo.json`):
+  - **Pipeline batch:** 1,84 GiB por execução completa.
+  - **Micro-lote:** ≈ 100 MiB com eventos e ≈ 40 MiB vazio.
+  - **Armazenamento:** 1,42 GiB no BigQuery e 1,94 MiB de Parquet por exportação.
+  - **Pub/Sub:** 282 B por mensagem.
+  - **Projeção mensal** (batch mensal + lote a cada 5 min): ≈ US$ 5,20 sem cota gratuita
+    e US$ 0 com ela.
+  - **Achados:** colunas de controle somam 317 MiB por carga de `bronze.alunos`; duas
+    cargas no mesmo dia fazem a Silver ler 724 MiB. Correções planejadas: armazenamento
+    físico ou `fonte` curta, e cluster por `id_execucao`.
+  - **`TABLE_STORAGE` dá 403:** o armazenamento é medido pela API de metadados.
+- **2026-11-03 — README fechado:**
+  - **Seções novas:** contexto, arquitetura (diagrama Mermaid só com o implementado),
+    tecnologias (implementado × evolução futura), estrutura do repositório, decisões
+    arquiteturais (forma de acesso, custo e atualização da fonte), evidências,
+    limitações, evolução futura e diferenciais.
+  - **Dependências:** `google-auth` e `requests` declarados com versão (usados por
+    `scripts/criar_alerta.py`).

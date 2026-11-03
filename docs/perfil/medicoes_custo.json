@@ -1,0 +1,905 @@
+{
+  "ultima_execucao_por_etapa": [
+    {
+      "etapa": "bronze_alunos",
+      "camada": "bronze",
+      "id_execucao": "20261102T193509Z_1b0fa9",
+      "inicio": "2026-11-02 19:35:58.778336+00:00",
+      "duracao_s": 6.669,
+      "linhas_saida": 3867999,
+      "bytes_estimados": 396189207,
+      "bytes_faturados": 269484032,
+      "jobs": 1
+    },
+    {
+      "etapa": "bronze_dicionario",
+      "camada": "bronze",
+      "id_execucao": "20261102T193509Z_1b0fa9",
+      "inicio": "2026-11-02 19:35:09.346029+00:00",
+      "duracao_s": 4.107,
+      "linhas_saida": 27,
+      "bytes_estimados": 2065,
+      "bytes_faturados": 20971520,
+      "jobs": 1
+    },
+    {
+      "etapa": "bronze_diretorio_municipio",
+      "camada": "bronze",
+      "id_execucao": "20261102T200747Z_3176ea",
+      "inicio": "2026-11-02 20:07:47.615278+00:00",
+      "duracao_s": 4.699,
+      "linhas_saida": 5571,
+      "bytes_estimados": 379002,
+      "bytes_faturados": 20971520,
+      "jobs": 1
+    },
+    {
+      "etapa": "bronze_meta_brasil",
+      "camada": "bronze",
+      "id_execucao": "20261102T193509Z_1b0fa9",
+      "inicio": "2026-11-02 19:35:17.384981+00:00",
+      "duracao_s": 4.246,
+      "linhas_saida": 3,
+      "bytes_estimados": 369,
+      "bytes_faturados": 20971520,
+      "jobs": 1
+    },
+    {
+      "etapa": "bronze_meta_municipio",
+      "camada": "bronze",
+      "id_execucao": "20261102T193509Z_1b0fa9",
+      "inicio": "2026-11-02 19:35:35.212557+00:00",
+      "duracao_s": 4.751,
+      "linhas_saida": 10704,
+      "bytes_estimados": 1504464,
+      "bytes_faturados": 20971520,
+      "jobs": 1
+    },
+    {
+      "etapa": "bronze_meta_uf",
+      "camada": "bronze",
+      "id_execucao": "20261102T193509Z_1b0fa9",
+      "inicio": "2026-11-02 19:35:25.356082+00:00",
+      "duracao_s": 5.825,
+      "linhas_saida": 81,
+      "bytes_estimados": 10047,
+      "bytes_faturados": 20971520,
+      "jobs": 1
+    },
+    {
+      "etapa": "bronze_municipio",
+      "camada": "bronze",
+      "id_execucao": "20261102T193509Z_1b0fa9",
+      "inicio": "2026-11-02 19:35:51.099298+00:00",
+      "duracao_s": 4.676,
+      "linhas_saida": 23995,
+      "bytes_estimados": 2623896,
+      "bytes_faturados": 20971520,
+      "jobs": 1
+    },
+    {
+      "etapa": "bronze_uf",
+      "camada": "bronze",
+      "id_execucao": "20261102T193509Z_1b0fa9",
+      "inicio": "2026-11-02 19:35:43.481390+00:00",
+      "duracao_s": 4.229,
+      "linhas_saida": 145,
+      "bytes_estimados": 15115,
+      "bytes_faturados": 20971520,
+      "jobs": 1
+    },
+    {
+      "etapa": "investigar_fonte",
+      "camada": "fonte",
+      "id_execucao": "20261102T232316Z_3a3fe5",
+      "inicio": "2026-11-02 23:23:16.499826+00:00",
+      "duracao_s": 2.007,
+      "linhas_saida": null,
+      "bytes_estimados": 3049589,
+      "bytes_faturados": 20971520,
+      "jobs": 1
+    },
+    {
+      "etapa": "perfil_fonte",
+      "camada": "fonte",
+      "id_execucao": "20261102T161033Z_e97c65",
+      "inicio": "2026-11-02 16:10:33.450074+00:00",
+      "duracao_s": 47.862,
+      "linhas_saida": null,
+      "bytes_estimados": 99994663,
+      "bytes_faturados": 262144000,
+      "jobs": 23
+    },
+    {
+      "etapa": "gold_evolucao_temporal",
+      "camada": "gold",
+      "id_execucao": "20261102T232157Z_b0292a",
+      "inicio": "2026-11-02 23:22:36.375502+00:00",
+      "duracao_s": 14.655,
+      "linhas_saida": 24172,
+      "bytes_estimados": 5582281,
+      "bytes_faturados": 52428800,
+      "jobs": 4
+    },
+    {
+      "etapa": "gold_features_ml",
+      "camada": "gold",
+      "id_execucao": "20261102T232157Z_b0292a",
+      "inicio": "2026-11-02 23:22:54.238425+00:00",
+      "duracao_s": 14.595,
+      "linhas_saida": 10896,
+      "bytes_estimados": 17688063,
+      "bytes_faturados": 83886080,
+      "jobs": 4
+    },
+    {
+      "etapa": "gold_indicador_brasil",
+      "camada": "gold",
+      "id_execucao": "20261102T232157Z_b0292a",
+      "inicio": "2026-11-02 23:22:18.986454+00:00",
+      "duracao_s": 13.302,
+      "linhas_saida": 3,
+      "bytes_estimados": 2171201,
+      "bytes_faturados": 52428800,
+      "jobs": 4
+    },
+    {
+      "etapa": "gold_indicador_municipio",
+      "camada": "gold",
+      "id_execucao": "20261102T230818Z_2d4702",
+      "inicio": "2026-11-02 23:08:18.554731+00:00",
+      "duracao_s": 16.156,
+      "linhas_saida": 24045,
+      "bytes_estimados": 8044377,
+      "bytes_faturados": 52428800,
+      "jobs": 4
+    },
+    {
+      "etapa": "gold_indicador_uf",
+      "camada": "gold",
+      "id_execucao": "20261102T230818Z_2d4702",
+      "inicio": "2026-11-02 23:08:38.909939+00:00",
+      "duracao_s": 13.024,
+      "linhas_saida": 178,
+      "bytes_estimados": 1339825,
+      "bytes_faturados": 62914560,
+      "jobs": 4
+    },
+    {
+      "etapa": "gold_validacao_microdado",
+      "camada": "gold",
+      "id_execucao": "20261102T232157Z_b0292a",
+      "inicio": "2026-11-02 23:21:57.259538+00:00",
+      "duracao_s": 18.233,
+      "linhas_saida": 34201,
+      "bytes_estimados": 227424837,
+      "bytes_faturados": 243269632,
+      "jobs": 4
+    },
+    {
+      "etapa": "streaming_gold",
+      "camada": "gold",
+      "id_execucao": "20261103T000834Z_6cd542",
+      "inicio": "2026-11-03 00:08:49.850700+00:00",
+      "duracao_s": 1.967,
+      "linhas_saida": null,
+      "bytes_estimados": 0,
+      "bytes_faturados": 0,
+      "jobs": 1
+    },
+    {
+      "etapa": "silver_alunos_avaliados",
+      "camada": "silver",
+      "id_execucao": "20261102T202305Z_720d11",
+      "inicio": "2026-11-02 20:25:10.684042+00:00",
+      "duracao_s": 14.534,
+      "linhas_saida": 3354661,
+      "bytes_estimados": 724271247,
+      "bytes_faturados": 724566016,
+      "jobs": 3
+    },
+    {
+      "etapa": "silver_dicionario",
+      "camada": "silver",
+      "id_execucao": "20261102T202305Z_720d11",
+      "inicio": "2026-11-02 20:23:05.098017+00:00",
+      "duracao_s": 14.686,
+      "linhas_saida": 27,
+      "bytes_estimados": 4899,
+      "bytes_faturados": 20971520,
+      "jobs": 3
+    },
+    {
+      "etapa": "silver_diretorio_municipio",
+      "camada": "silver",
+      "id_execucao": "20261102T202305Z_720d11",
+      "inicio": "2026-11-02 20:23:22.752180+00:00",
+      "duracao_s": 11.269,
+      "linhas_saida": 5571,
+      "bytes_estimados": 661593,
+      "bytes_faturados": 20971520,
+      "jobs": 3
+    },
+    {
+      "etapa": "silver_meta_brasil",
+      "camada": "silver",
+      "id_execucao": "20261102T202305Z_720d11",
+      "inicio": "2026-11-02 20:24:23.957522+00:00",
+      "duracao_s": 10.785,
+      "linhas_saida": 3,
+      "bytes_estimados": 1205,
+      "bytes_faturados": 31457280,
+      "jobs": 3
+    },
+    {
+      "etapa": "silver_meta_municipio",
+      "camada": "silver",
+      "id_execucao": "20261102T202305Z_720d11",
+      "inicio": "2026-11-02 20:24:54.261047+00:00",
+      "duracao_s": 13.191,
+      "linhas_saida": 10704,
+      "bytes_estimados": 4351294,
+      "bytes_faturados": 41943040,
+      "jobs": 3
+    },
+    {
+      "etapa": "silver_meta_uf",
+      "camada": "silver",
+      "id_execucao": "20261102T202305Z_720d11",
+      "inicio": "2026-11-02 20:24:37.616388+00:00",
+      "duracao_s": 13.576,
+      "linhas_saida": 81,
+      "bytes_estimados": 166923,
+      "bytes_faturados": 41943040,
+      "jobs": 3
+    },
+    {
+      "etapa": "silver_rede",
+      "camada": "silver",
+      "id_execucao": "20261102T202305Z_720d11",
+      "inicio": "2026-11-02 20:23:37.805154+00:00",
+      "duracao_s": 11.331,
+      "linhas_saida": 9,
+      "bytes_estimados": 1049,
+      "bytes_faturados": 20971520,
+      "jobs": 3
+    },
+    {
+      "etapa": "silver_resultado_municipio",
+      "camada": "silver",
+      "id_execucao": "20261103T003323Z_9c1a65",
+      "inicio": "2026-11-03 00:33:23.714497+00:00",
+      "duracao_s": 15.482,
+      "linhas_saida": 23995,
+      "bytes_estimados": 7271811,
+      "bytes_faturados": 52428800,
+      "jobs": 3
+    },
+    {
+      "etapa": "silver_resultado_uf",
+      "camada": "silver",
+      "id_execucao": "20261102T202305Z_720d11",
+      "inicio": "2026-11-02 20:23:52.982735+00:00",
+      "duracao_s": 12.358,
+      "linhas_saida": 145,
+      "bytes_estimados": 181891,
+      "bytes_faturados": 52428800,
+      "jobs": 3
+    },
+    {
+      "etapa": "streaming_silver",
+      "camada": "silver",
+      "id_execucao": "20261103T000834Z_6cd542",
+      "inicio": "2026-11-03 00:08:34.286900+00:00",
+      "duracao_s": 12.173,
+      "linhas_saida": 0,
+      "bytes_estimados": 94767,
+      "bytes_faturados": 31457280,
+      "jobs": 2
+    },
+    {
+      "etapa": "streaming_produtor",
+      "camada": "streaming",
+      "id_execucao": "20261103T000240Z_4bb5db",
+      "inicio": "2026-11-03 00:02:40.097102+00:00",
+      "duracao_s": 129.908,
+      "linhas_saida": 626,
+      "bytes_estimados": 0,
+      "bytes_faturados": 0,
+      "jobs": 0
+    }
+  ],
+  "total_por_execucao": [
+    {
+      "id_execucao": "20261102T160721Z_9ebf14",
+      "inicio": "2026-11-02 16:07:21.467598+00:00",
+      "camadas": "fonte",
+      "etapas": 1,
+      "bytes_faturados": 262144000,
+      "duracao_s": 47.7,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T161033Z_e97c65",
+      "inicio": "2026-11-02 16:10:33.450074+00:00",
+      "camadas": "fonte",
+      "etapas": 1,
+      "bytes_faturados": 262144000,
+      "duracao_s": 47.9,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T165554Z_c2e682",
+      "inicio": "2026-11-02 16:55:54.702219+00:00",
+      "camadas": "fonte",
+      "etapas": 1,
+      "bytes_faturados": 381681664,
+      "duracao_s": 28.5,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T165638Z_2131d7",
+      "inicio": "2026-11-02 16:56:38.809461+00:00",
+      "camadas": "bronze",
+      "etapas": 7,
+      "bytes_faturados": 395313152,
+      "duracao_s": 31.9,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T193509Z_1b0fa9",
+      "inicio": "2026-11-02 19:35:09.346029+00:00",
+      "camadas": "bronze",
+      "etapas": 7,
+      "bytes_faturados": 395313152,
+      "duracao_s": 34.5,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T194947Z_acb82c",
+      "inicio": "2026-11-02 19:49:47.114962+00:00",
+      "camadas": "fonte",
+      "etapas": 1,
+      "bytes_faturados": 83886080,
+      "duracao_s": 11.7,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T195613Z_d251e8",
+      "inicio": "2026-11-02 19:56:13.816332+00:00",
+      "camadas": "fonte",
+      "etapas": 1,
+      "bytes_faturados": 62914560,
+      "duracao_s": 9.4,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T200056Z_6eebba",
+      "inicio": "2026-11-02 20:00:56.782034+00:00",
+      "camadas": "fonte",
+      "etapas": 1,
+      "bytes_faturados": 10485760,
+      "duracao_s": 4.6,
+      "falhas": 1
+    },
+    {
+      "id_execucao": "20261102T200538Z_a5c219",
+      "inicio": "2026-11-02 20:05:38.627092+00:00",
+      "camadas": "fonte",
+      "etapas": 1,
+      "bytes_faturados": 10485760,
+      "duracao_s": 2.3,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T200747Z_3176ea",
+      "inicio": "2026-11-02 20:07:47.615278+00:00",
+      "camadas": "bronze",
+      "etapas": 1,
+      "bytes_faturados": 20971520,
+      "duracao_s": 4.7,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T202305Z_720d11",
+      "inicio": "2026-11-02 20:23:05.098017+00:00",
+      "camadas": "silver",
+      "etapas": 9,
+      "bytes_faturados": 1007681536,
+      "duracao_s": 113.8,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T204419Z_22674a",
+      "inicio": "2026-11-02 20:44:19.129440+00:00",
+      "camadas": "silver",
+      "etapas": 1,
+      "bytes_faturados": 62914560,
+      "duracao_s": 16.4,
+      "falhas": 1
+    },
+    {
+      "id_execucao": "20261102T205617Z_a21a5a",
+      "inicio": "2026-11-02 20:56:17.914107+00:00",
+      "camadas": "silver",
+      "etapas": 1,
+      "bytes_faturados": 52428800,
+      "duracao_s": 14.6,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T205850Z_45abe0",
+      "inicio": "2026-11-02 20:58:50.714428+00:00",
+      "camadas": "silver",
+      "etapas": 1,
+      "bytes_faturados": 52428800,
+      "duracao_s": 14.4,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T230818Z_2d4702",
+      "inicio": "2026-11-02 23:08:18.554731+00:00",
+      "camadas": "gold",
+      "etapas": 3,
+      "bytes_faturados": 348127232,
+      "duracao_s": 43.2,
+      "falhas": 1
+    },
+    {
+      "id_execucao": "20261102T231309Z_a99822",
+      "inicio": "2026-11-02 23:13:09.417308+00:00",
+      "camadas": "fonte",
+      "etapas": 1,
+      "bytes_faturados": 73400320,
+      "duracao_s": 13.5,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T232157Z_b0292a",
+      "inicio": "2026-11-02 23:21:57.259538+00:00",
+      "camadas": "gold",
+      "etapas": 4,
+      "bytes_faturados": 432013312,
+      "duracao_s": 60.8,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261102T232316Z_3a3fe5",
+      "inicio": "2026-11-02 23:23:16.499826+00:00",
+      "camadas": "fonte",
+      "etapas": 1,
+      "bytes_faturados": 20971520,
+      "duracao_s": 2.0,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261103T000239Z_96891f",
+      "inicio": "2026-11-03 00:02:39.950956+00:00",
+      "camadas": "gold,silver",
+      "etapas": 2,
+      "bytes_faturados": 31457280,
+      "duracao_s": 18.3,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261103T000240Z_4bb5db",
+      "inicio": "2026-11-03 00:02:40.097102+00:00",
+      "camadas": "streaming",
+      "etapas": 1,
+      "bytes_faturados": 0,
+      "duracao_s": 129.9,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261103T000404Z_5280a8",
+      "inicio": "2026-11-03 00:04:04.916998+00:00",
+      "camadas": "gold,silver",
+      "etapas": 2,
+      "bytes_faturados": 94371840,
+      "duracao_s": 28.5,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261103T000540Z_f8a9ac",
+      "inicio": "2026-11-03 00:05:40.586743+00:00",
+      "camadas": "gold,silver",
+      "etapas": 2,
+      "bytes_faturados": 94371840,
+      "duracao_s": 27.3,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261103T000714Z_0af191",
+      "inicio": "2026-11-03 00:07:14.937286+00:00",
+      "camadas": "gold,silver",
+      "etapas": 2,
+      "bytes_faturados": 31457280,
+      "duracao_s": 13.0,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261103T000834Z_6cd542",
+      "inicio": "2026-11-03 00:08:34.286900+00:00",
+      "camadas": "gold,silver",
+      "etapas": 2,
+      "bytes_faturados": 31457280,
+      "duracao_s": 14.1,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261103T001855Z_9e016a",
+      "inicio": "2026-11-03 00:18:55.944010+00:00",
+      "camadas": "silver",
+      "etapas": 1,
+      "bytes_faturados": 62914560,
+      "duracao_s": 19.5,
+      "falhas": 1
+    },
+    {
+      "id_execucao": "20261103T003123Z_3f5167",
+      "inicio": "2026-11-03 00:31:23.537761+00:00",
+      "camadas": "silver",
+      "etapas": 1,
+      "bytes_faturados": 62914560,
+      "duracao_s": 15.7,
+      "falhas": 1
+    },
+    {
+      "id_execucao": "20261103T003323Z_9c1a65",
+      "inicio": "2026-11-03 00:33:23.714497+00:00",
+      "camadas": "silver",
+      "etapas": 1,
+      "bytes_faturados": 52428800,
+      "duracao_s": 15.5,
+      "falhas": 0
+    },
+    {
+      "id_execucao": "20261103T005203Z_b2eb29",
+      "inicio": "2026-11-03 00:52:03.591573+00:00",
+      "camadas": "ops",
+      "etapas": 1,
+      "bytes_faturados": 31457280,
+      "duracao_s": 7.7,
+      "falhas": 1
+    }
+  ],
+  "total_geral": [
+    {
+      "execucoes": 28,
+      "etapas": 58,
+      "bytes_faturados": 4428136448,
+      "primeira": "2026-11-02 16:07:21.467598+00:00",
+      "ultima": "2026-11-03 00:52:03.591573+00:00"
+    }
+  ],
+  "pubsub": [
+    {
+      "mensagens": 626,
+      "bytes_dados": 148233,
+      "bytes_com_atributos": 176607,
+      "primeira": "2026-11-03 00:02:43.692000+00:00",
+      "ultima": "2026-11-03 00:04:49.874000+00:00"
+    }
+  ],
+  "armazenamento": [
+    {
+      "dataset": "bronze",
+      "tabela": "alunos",
+      "tipo": "TABLE",
+      "linhas": 7735998,
+      "bytes_logicos": 1202386308,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "bronze",
+      "tabela": "dicionario",
+      "tipo": "TABLE",
+      "linhas": 54,
+      "bytes_logicos": 7208,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "bronze",
+      "tabela": "diretorio_municipio",
+      "tipo": "TABLE",
+      "linhas": 5571,
+      "bytes_logicos": 830253,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "bronze",
+      "tabela": "eventos_stream",
+      "tipo": "TABLE",
+      "linhas": 0,
+      "bytes_logicos": 0,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "bronze",
+      "tabela": "meta_brasil",
+      "tipo": "TABLE",
+      "linhas": 6,
+      "bytes_logicos": 1170,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "bronze",
+      "tabela": "meta_municipio",
+      "tipo": "TABLE",
+      "linhas": 21408,
+      "bytes_logicos": 4614528,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "bronze",
+      "tabela": "meta_uf",
+      "tipo": "TABLE",
+      "linhas": 162,
+      "bytes_logicos": 31110,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "bronze",
+      "tabela": "municipio",
+      "tipo": "TABLE",
+      "linhas": 47990,
+      "bytes_logicos": 7935232,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "bronze",
+      "tabela": "uf",
+      "tipo": "TABLE",
+      "linhas": 290,
+      "bytes_logicos": 44440,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "alunos_avaliados",
+      "tipo": "TABLE",
+      "linhas": 3354661,
+      "bytes_logicos": 294424633,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "dicionario",
+      "tipo": "TABLE",
+      "linhas": 27,
+      "bytes_logicos": 1039,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "diretorio_municipio",
+      "tipo": "TABLE",
+      "linhas": 5571,
+      "bytes_logicos": 278731,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "eventos_lote_stg",
+      "tipo": "TABLE",
+      "linhas": 0,
+      "bytes_logicos": 0,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "eventos_quarentena",
+      "tipo": "TABLE",
+      "linhas": 12,
+      "bytes_logicos": 3888,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "eventos_validos",
+      "tipo": "TABLE",
+      "linhas": 588,
+      "bytes_logicos": 114660,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "meta_brasil",
+      "tipo": "TABLE",
+      "linhas": 3,
+      "bytes_logicos": 297,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "meta_municipio",
+      "tipo": "TABLE",
+      "linhas": 10704,
+      "bytes_logicos": 1557058,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "meta_uf",
+      "tipo": "TABLE",
+      "linhas": 81,
+      "bytes_logicos": 9798,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "rede",
+      "tipo": "TABLE",
+      "linhas": 9,
+      "bytes_logicos": 424,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "resultado_municipio",
+      "tipo": "TABLE",
+      "linhas": 23995,
+      "bytes_logicos": 3962760,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "silver",
+      "tabela": "resultado_uf",
+      "tipo": "TABLE",
+      "linhas": 145,
+      "bytes_logicos": 21955,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "gold",
+      "tabela": "evolucao_temporal",
+      "tipo": "TABLE",
+      "linhas": 24172,
+      "bytes_logicos": 2543475,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "gold",
+      "tabela": "features_ml",
+      "tipo": "TABLE",
+      "linhas": 10896,
+      "bytes_logicos": 1638919,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "gold",
+      "tabela": "indicador_brasil",
+      "tipo": "TABLE",
+      "linhas": 3,
+      "bytes_logicos": 416,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "gold",
+      "tabela": "indicador_municipio",
+      "tipo": "TABLE",
+      "linhas": 24045,
+      "bytes_logicos": 3811920,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "gold",
+      "tabela": "indicador_municipio_atualizado",
+      "tipo": "VIEW",
+      "linhas": 0,
+      "bytes_logicos": 0,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "gold",
+      "tabela": "indicador_uf",
+      "tipo": "TABLE",
+      "linhas": 178,
+      "bytes_logicos": 20945,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "gold",
+      "tabela": "validacao_microdado",
+      "tipo": "TABLE",
+      "linhas": 34201,
+      "bytes_logicos": 3453458,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "ops",
+      "tabela": "execucoes",
+      "tipo": "TABLE",
+      "linhas": 58,
+      "bytes_logicos": 15216,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "ops",
+      "tabela": "marca_dagua_stream",
+      "tipo": "TABLE",
+      "linhas": 5,
+      "bytes_logicos": 285,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    },
+    {
+      "dataset": "ops",
+      "tabela": "qualidade",
+      "tipo": "TABLE",
+      "linhas": 149,
+      "bytes_logicos": 22323,
+      "bytes_logicos_longo_prazo": 0,
+      "bytes_fisicos": null
+    }
+  ],
+  "bucket": {
+    "bucket": "techchalenge-513515-bucket-alfabetizacao",
+    "prefixo": "gold/",
+    "por_tabela": {
+      "evolucao_temporal": {
+        "arquivos": 1,
+        "bytes": 310065
+      },
+      "features_ml": {
+        "arquivos": 1,
+        "bytes": 555232
+      },
+      "indicador_brasil": {
+        "arquivos": 1,
+        "bytes": 4902
+      },
+      "indicador_municipio": {
+        "arquivos": 1,
+        "bytes": 572766
+      },
+      "indicador_uf": {
+        "arquivos": 1,
+        "bytes": 10708
+      },
+      "validacao_microdado": {
+        "arquivos": 1,
+        "bytes": 577225
+      }
+    },
+    "bytes_total": 2030898
+  },
+  "_execucao": {
+    "id_execucao": "20261103T005713Z_1989d0",
+    "job_ids": [
+      "6c478d04-29e5-4b88-8309-76672562f3bb",
+      "057bc63e-50b0-4d7b-b124-c7ce899522f9",
+      "1f097327-57c1-4964-a4ab-46ba52077664",
+      "48dcf38f-b243-4541-b83e-ab93adb4f916"
+    ]
+  }
+}

@@ -86,6 +86,26 @@ class ClienteBQ:
             linhas=t.num_rows, colunas=[(f.name, f.field_type) for f in t.schema]
         )
 
+    def armazenamento(self, dataset: str) -> list[dict[str, Any]]:
+        """Bytes armazenados de cada tabela do dataset, pela API de metadados (sem custo).
+
+        Alternativa a INFORMATION_SCHEMA.TABLE_STORAGE, que exige permissão no nível da região.
+        """
+        linhas = []
+        for item in self.client.list_tables(f"{self.settings.gcp_project}.{dataset}"):
+            t = self.client.get_table(item.reference)
+            p = t._properties
+            linhas.append({
+                "dataset": dataset,
+                "tabela": t.table_id,
+                "tipo": t.table_type,
+                "linhas": t.num_rows,
+                "bytes_logicos": t.num_bytes,
+                "bytes_logicos_longo_prazo": int(p.get("numLongTermBytes", 0) or 0),
+                "bytes_fisicos": int(p["numPhysicalBytes"]) if p.get("numPhysicalBytes") else None,
+            })
+        return linhas
+
     def copiar(self, origem_id: str, destino_id: str) -> str:
         """Copy job substituindo o destino (gratuito: não escaneia bytes). Devolve o job id."""
         from google.cloud import bigquery
