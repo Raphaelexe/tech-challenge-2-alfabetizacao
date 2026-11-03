@@ -227,7 +227,7 @@ que falham levantam exceção e impedem a camada seguinte de ser publicada.
 | `id_municipio` nulo ou fora de 7 dígitos | Silver | Bloqueante | 0 linhas |
 | Taxa fora de 0–100 | Silver | Bloqueante | 0 linhas |
 | Proficiência ausente em aluno presente | Silver | Informativa | registrar % |
-| Taxa de match município × meta_municipio | Gold | Bloqueante | ≥ limiar a definir (ex.: 95%) |
+| Taxa de match município × meta_municipio | Gold | Bloqueante | ≥ 99% (medido: 99,07% em 2023, 100% em 2024) |
 | Taxa de match município × uf | Gold | Bloqueante | 100% |
 | Taxa de match uf × meta_uf | Gold | Bloqueante | 100% das UFs com meta |
 | Município sem meta (`sem_meta`) | Gold | Informativa | registrar contagem |
@@ -312,20 +312,10 @@ pelos preços de lista do GCP.
 `basedosdados`. O BigQuery não faz join entre locais diferentes, e copiar para outra região
 geraria transferência paga.
 
-### Tabela de estimativa (preencher com o medido)
+### Tabela de estimativa
 
-| Serviço | Unidade | Quantidade medida | Preço unitário (US) | Custo mensal projetado |
-| --- | --- | --- | --- | --- |
-| BigQuery query (on-demand) | TiB processado | _medir: soma de `total_bytes_billed` por execução × execuções/mês_ | US$ 6,25/TiB (1º TiB/mês grátis) | _calcular_ |
-| BigQuery storage ativo lógico | GiB-mês | _medir em `TABLE_STORAGE`, todas as camadas_ | US$ 0,02/GiB-mês (10 GiB/mês grátis) | _calcular_ |
-| BigQuery storage longo prazo | GiB-mês | _Bronze antiga, sem alteração há 90 dias_ | ~US$ 0,01/GiB-mês | _calcular_ |
-| Pub/Sub publicação/entrega | TiB | _mensagens × bytes médios_ | US$ 40/TiB (10 GiB/mês grátis) | _calcular_ |
-| Pub/Sub assinatura BigQuery | TiB | _idem_ | US$ 50/TiB, sem custo extra de ingestão no BQ | _calcular_ |
-| Cloud Storage (export Parquet da Gold) | GiB-mês | _`gsutil du`_ | conferir preço da classe Standard na região | _calcular_ |
-| Cloud Logging / Monitoring | GiB de log | _medir_ | dentro da cota gratuita esperada; confirmar | _calcular_ |
-
-Preços de referência: [BigQuery pricing](https://cloud.google.com/bigquery/pricing) e
-[Pub/Sub pricing](https://cloud.google.com/pubsub/pricing). Conferir na data da entrega.
+Preenchida no README (seção FinOps), com as quantidades medidas por
+`scripts/medir_custos.py` e os preços consultados nas páginas oficiais em 03/11/2026.
 
 Se o grupo usar a camada gratuita ou créditos de avaliação, dizer isso no README e projetar o
 custo do mesmo desenho em produção com a cadência pretendida, por exemplo: batch mensal +
@@ -622,7 +612,7 @@ match, divergências de chaves, tamanhos de tabela, etc.).
   - **Armazenamento:** 1,42 GiB no BigQuery e 1,94 MiB de Parquet por exportação.
   - **Pub/Sub:** 282 B por mensagem.
   - **Projeção mensal** (batch mensal + lote a cada 5 min): ≈ US$ 5,20 sem cota gratuita
-    e US$ 0 com ela.
+    e US$ 0 com ela. Corrigida em 03/11/2026 (ver abaixo).
   - **Achados:** colunas de controle somam 317 MiB por carga de `bronze.alunos`; duas
     cargas no mesmo dia fazem a Silver ler 724 MiB. Correções planejadas: armazenamento
     físico ou `fonte` curta, e cluster por `id_execucao`.
@@ -634,3 +624,10 @@ match, divergências de chaves, tamanhos de tabela, etc.).
     limitações, evolução futura e diferenciais.
   - **Dependências:** `google-auth` e `requests` declarados com versão (usados por
     `scripts/criar_alerta.py`).
+- **2026-11-03 — preços conferidos nas páginas oficiais:**
+  - **Alerta baseado em log:** US$ 0,35 por referência de métrica por mês, sem custo de
+    pontos retornados (exemplo 7 da página de exemplos de preço do Observability).
+  - **Armazenamento ativo lógico:** US$ 0,023/GiB-mês, e não US$ 0,02.
+  - **Assinatura BigQuery do Pub/Sub:** US$ 50/TiB, sem cota gratuita, separada da
+    publicação (US$ 40/TiB, 10 GiB grátis).
+  - **Nova projeção:** ≈ US$ 5,62/mês sem cota gratuita e ≈ US$ 0,38 com ela.

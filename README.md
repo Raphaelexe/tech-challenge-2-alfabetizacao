@@ -14,7 +14,7 @@ falha.
 | 87 regras de qualidade (69 bloqueantes) e falha demonstrada, com publicação barrada | [Qualidade de dados](#qualidade-de-dados) |
 | Streaming: 626 mensagens = 588 válidas + 26 duplicadas + 12 inválidas, sem perda nem duplicação | [Streaming](#streaming) |
 | Alerta por e-mail em menos de 1 minuto após a falha | [Monitoramento](#monitoramento) |
-| Custo projetado em produção: ≈ US$ 5,20/mês sem cota gratuita, US$ 0 com ela | [FinOps](#finops) |
+| Custo projetado em produção: ≈ US$ 5,62/mês sem cota gratuita, ≈ US$ 0,38 com ela | [FinOps](#finops) |
 | Base de features para a fase 3, sem vazamento de alvo, exportada em Parquet | [Aplicação em IA](#aplicação-em-ia) |
 
 ## Contexto do problema
@@ -583,9 +583,9 @@ precisar de números mais frescos.
 O volume de dados lido é de dezenas de KiB. O custo vem do piso de 10 MB por tabela
 referenciada, então a cadência é a principal alavanca:
 
-| Cadência (com eventos o tempo todo) | Faturado por mês | Custo on-demand (US$ 6,25/TiB, 1 TiB grátis) |
+| Cadência (com eventos o tempo todo) | Faturado por mês | Custo das consultas on-demand (US$ 6,25/TiB, 1 TiB grátis) |
 | --- | ---: | ---: |
-| 1 lote por minuto | ≈ 4,1 TiB | ≈ US$ 19 |
+| 1 lote por minuto | ≈ 4,1 TiB | ≈ US$ 19,50 |
 | 1 lote a cada 5 minutos | ≈ 0,82 TiB | US$ 0 (dentro da cota gratuita) |
 | 1 lote a cada 15 minutos | ≈ 0,27 TiB | US$ 0 |
 
@@ -695,25 +695,34 @@ Premissas que não vêm da medição, porque o streaming é simulado e não há 
 - há eventos em todos os lotes (pior caso; lote vazio custa 40% do cheio);
 - chega 1 evento por segundo (2,6 milhões por mês).
 
-Preços de lista em US multi-região na data de referência. **Conferir em
-cloud.google.com/pricing na data da entrega.**
+Preços de lista em US multi-região, consultados nas páginas oficiais em 03/11/2026:
+[BigQuery](https://cloud.google.com/bigquery/pricing),
+[Pub/Sub](https://cloud.google.com/pubsub/pricing),
+[Cloud Storage](https://cloud.google.com/storage/pricing),
+[Cloud Logging e Cloud Monitoring](https://cloud.google.com/products/observability/pricing) e
+[exemplos de preço de alertas](https://cloud.google.com/stackdriver/observability-pricing-examples).
+A coluna de custo não aplica cota gratuita; as cotas entram só na última linha.
 
 | Serviço | Unidade | Quantidade medida → projetada/mês | Preço unitário | Custo mensal projetado |
 | --- | --- | --- | --- | ---: |
-| BigQuery, consultas do batch | TiB faturado | 1,84 GiB × 1 execução = 0,0018 TiB | US$ 6,25/TiB (1º TiB grátis) | US$ 0,01 |
-| BigQuery, consultas do streaming | TiB faturado | 100 MiB × 288 × 30 = 0,82 TiB | US$ 6,25/TiB (1º TiB grátis) | US$ 5,15 |
-| BigQuery, armazenamento ativo lógico | GiB-mês | 1,42 GiB (+0,57 GiB por carga mensal da Bronze) | US$ 0,02/GiB (10 GiB grátis) | US$ 0,03 |
-| BigQuery, armazenamento do streaming | GiB-mês | 282 B × 2,6 mi ≈ 0,68 GiB na Bronze + Silver | US$ 0,02/GiB | US$ 0,01 |
-| Pub/Sub, entrega | TiB | 0,68 GiB | US$ 40/TiB (10 GiB grátis) | US$ 0,03 |
-| Cloud Storage, Parquet da Gold | GiB-mês | 1,94 MiB por exportação | US$ 0,026/GiB | < US$ 0,01 |
-| Cloud Logging | GiB ingerido | só WARNING+: KiB por mês | US$ 0,50/GiB (50 GiB grátis) | US$ 0 |
-| Cloud Monitoring, alerta | política | 1 política, 1 condição | conferir na tabela de preços | a conferir |
-| **Total sem cota gratuita** | | | | **≈ US$ 5,20** |
-| **Total com cota gratuita** | | | | **≈ US$ 0** |
+| BigQuery, consultas do batch | TiB faturado | 1,84 GiB × 1 execução = 0,0018 TiB | US$ 6,25/TiB (1º TiB/mês grátis) | US$ 0,01 |
+| BigQuery, consultas do streaming | TiB faturado | 100 MiB × 288 × 30 = 0,82 TiB | US$ 6,25/TiB (1º TiB/mês grátis) | US$ 5,15 |
+| BigQuery, armazenamento ativo lógico | GiB-mês | 1,42 GiB (+0,57 GiB por carga mensal da Bronze) | US$ 0,000031507/GiB-hora ≈ US$ 0,023/GiB-mês (10 GiB/mês grátis) | US$ 0,03 |
+| BigQuery, armazenamento do streaming | GiB-mês | 282 B × 2,6 mi ≈ 0,68 GiB na Bronze + Silver | ≈ US$ 0,023/GiB-mês | US$ 0,02 |
+| Pub/Sub, publicação | TiB | 0,68 GiB | US$ 40/TiB (10 GiB/mês grátis) | US$ 0,03 |
+| Pub/Sub, assinatura BigQuery (leitura + gravação no BigQuery) | TiB | 0,68 GiB | US$ 50/TiB (sem cota gratuita; sem custo extra de ingestão no BigQuery) | US$ 0,03 |
+| Cloud Storage, Parquet da Gold | GiB-mês | 1,94 MiB por exportação | US$ 0,026/GB-mês Standard (5 GiB grátis) | < US$ 0,01 |
+| Cloud Logging | GiB ingerido | só WARNING+: KiB por mês | US$ 0,50/GiB (50 GiB/projeto/mês grátis) | < US$ 0,01 |
+| Cloud Monitoring, alerta baseado em log | referência de métrica | 1 política com 1 condição = 1 referência; não retorna pontos | US$ 0,35/referência/mês | US$ 0,35 |
+| **Total sem cota gratuita** | | | | **≈ US$ 5,62** |
+| **Total com cota gratuita** | | | | **≈ US$ 0,38** |
+
+Com as cotas gratuitas, sobram só a assinatura BigQuery do Pub/Sub (US$ 0,03), que não
+tem cota, e o alerta (US$ 0,35).
 
 **A cadência do micro-lote é o que define o custo.** O volume de eventos quase não pesa:
 
-| Cadência do micro-lote | Consultas/mês | Custo (cota gratuita aplicada) |
+| Cadência do micro-lote | Consultas/mês | Custo das consultas (cota gratuita aplicada) |
 | --- | ---: | ---: |
 | 1 por minuto | 4,12 TiB | ≈ US$ 19,50 |
 | 1 a cada 5 minutos | 0,82 TiB | US$ 0 |
@@ -846,8 +855,8 @@ BigQuery estão em `ops.execucoes`.
 - **Permissões que o projeto não tem:** `INFORMATION_SCHEMA.TABLE_STORAGE` e o
   `__TABLES__` do dataset de diretórios dão 403. O armazenamento é medido pela API de
   metadados.
-- **Preços da tabela de FinOps:** são de lista e precisam ser conferidos na data da
-  entrega.
+- **Preços da tabela de FinOps:** são os de lista, consultados nas páginas oficiais em
+  03/11/2026. Podem mudar depois dessa data.
 
 ## Evolução futura
 

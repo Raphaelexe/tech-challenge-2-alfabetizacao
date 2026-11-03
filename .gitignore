@@ -16,3 +16,6 @@ venv/
 .vscode/
 .idea/
 .DS_Store
+
+# Roteiro do vídeo executivo (uso interno do grupo)
+docs/roteiro_video.md
