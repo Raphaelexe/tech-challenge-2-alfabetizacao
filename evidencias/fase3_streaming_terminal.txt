@@ -1,0 +1,54 @@
+Execução do streaming em 2026-11-02 (horário de Brasília), dois terminais em paralelo.
+
+=== Terminal 1: produtor ===
+$ .venv/Scripts/python -m streaming.produtor --eventos-por-segundo 5 --duracao-s 120
+2026-11-02 21:02:42,503 INFO query ok job=c16a9d1c-311b-463a-b240-d80a478f7812 estimado=844.2 KiB faturado=10.0 MiB duracao=1.8s
+2026-11-02 21:04:53,121 INFO publicadas 626 mensagens em projects/techchalenge-513515/topics/eventos-alfabetizacao: {'valido': 588, 'duplicado': 26, 'sem_taxa': 2, 'json_invalido': 3, 'municipio_inexistente': 6, 'tipo_desconhecido': 1}
+
+=== Terminal 2: micro-lote ===
+$ .venv/Scripts/python -m streaming.micro_lote --lotes 5 --intervalo-s 60
+2026-11-02 21:02:42,431 INFO query ok job=d46a4ba4-4cdf-47b4-aafa-a2fb98681e33 estimado=0 B faturado=0 B duracao=1.9s
+2026-11-02 21:02:46,646 INFO query ok job=d2fb2820-77db-4eb3-81a5-30599749842f estimado=70.7 KiB faturado=30.0 MiB duracao=2.9s
+2026-11-02 21:02:48,731 INFO query ok job=5e01b576-224f-4adf-9c55-23836691569d estimado=0 B faturado=0 B duracao=1.6s
+2026-11-02 21:03:01,734 INFO query ok job=da8eb5a6-d92c-4ed8-916f-54b31ab07ba9 estimado=0 B faturado=0 B duracao=5.9s
+2026-11-02 21:03:04,916 INFO lote 20261103T000239Z_96891f: 0 lidos, 0 válidos novos, 0 duplicados, 0 inválidos | latência de ingestão p50 0.000s p95 0.000s | ponta a ponta p95 0.0s
+2026-11-02 21:04:07,145 INFO query ok job=224b78ce-0565-40a2-b5a3-fccfaa227a2b estimado=8 B faturado=10.0 MiB duracao=1.5s
+2026-11-02 21:04:12,618 INFO query ok job=d1b3b81e-2ebe-484d-aa09-3ce5d526a2a5 estimado=70.7 KiB faturado=30.0 MiB duracao=4.8s
+2026-11-02 21:04:14,584 INFO query ok job=80f3093f-4c43-42ce-b5d8-f0d357467e19 estimado=4.3 KiB faturado=10.0 MiB duracao=1.4s
+2026-11-02 21:04:16,797 INFO query ok job=99ee470d-eb2f-45a8-988a-09baeeb74905 estimado=11.9 KiB faturado=10.0 MiB duracao=1.8s
+2026-11-02 21:04:20,325 INFO ok [bloqueante] eventos_lote_origem_nao_simulada: valor=0.0 limiar = 0.0
+2026-11-02 21:04:20,325 INFO ok [bloqueante] eventos_lote_valido_inconsistente: valor=0.0 limiar = 0.0
+2026-11-02 21:04:20,326 INFO ok [bloqueante] eventos_lote_defeito_nao_detectado: valor=0.0 limiar = 0.0
+2026-11-02 21:04:20,326 INFO ok [informativa] eventos_lote_proporcao_invalidos: valor=0.01556420233463035 limiar <= 0.05
+2026-11-02 21:04:20,326 INFO ok [informativa] eventos_lote_proporcao_duplicados: valor=0.042801556420233464 limiar <= 0.1
+2026-11-02 21:04:20,326 INFO ok [informativa] eventos_lote_latencia_ingestao_p95_s: valor=0.976 limiar <= 10.0
+2026-11-02 21:04:20,326 INFO ok [informativa] eventos_lote_latencia_negativa: valor=0.0 limiar = 0.0
+2026-11-02 21:04:23,843 INFO query ok job=35c41c90-af3e-4f69-a700-88471ae11015 estimado=42.7 KiB faturado=20.0 MiB duracao=2.9s
+2026-11-02 21:04:27,023 INFO query ok job=e4bd2f1c-8b22-4aeb-868e-9fa523ec2af3 estimado=71.3 KiB faturado=20.0 MiB duracao=2.5s
+2026-11-02 21:04:36,709 INFO query ok job=20be08d1-625c-4e9b-a8b4-778f507dd050 estimado=0 B faturado=0 B duracao=1.5s
+2026-11-02 21:04:40,586 INFO lote 20261103T000404Z_5280a8: 257 lidos, 242 válidos novos, 11 duplicados, 4 inválidos | latência de ingestão p50 0.073s p95 0.976s | ponta a ponta p95 80.2s
+2026-11-02 21:05:42,681 INFO query ok job=925b7dde-b492-43f8-8d85-10e8c9a1ebed estimado=16 B faturado=10.0 MiB duracao=1.5s
+2026-11-02 21:05:47,463 INFO query ok job=4d3b8155-2f12-4100-8819-7697d106fceb estimado=79.7 KiB faturado=30.0 MiB duracao=4.0s
+2026-11-02 21:05:49,405 INFO query ok job=ee04d028-9838-4592-9521-e5458833354b estimado=6.3 KiB faturado=10.0 MiB duracao=1.4s
+2026-11-02 21:05:51,589 INFO query ok job=b8c34dde-9ddd-416f-9e82-a2b7a8e8c267 estimado=17.2 KiB faturado=10.0 MiB duracao=1.7s
+2026-11-02 21:05:54,875 INFO ok [bloqueante] eventos_lote_origem_nao_simulada: valor=0.0 limiar = 0.0
+2026-11-02 21:05:54,875 INFO ok [bloqueante] eventos_lote_valido_inconsistente: valor=0.0 limiar = 0.0
+2026-11-02 21:05:54,875 INFO ok [bloqueante] eventos_lote_defeito_nao_detectado: valor=0.0 limiar = 0.0
+2026-11-02 21:05:54,875 INFO ok [informativa] eventos_lote_proporcao_invalidos: valor=0.02168021680216802 limiar <= 0.05
+2026-11-02 21:05:54,875 INFO ok [informativa] eventos_lote_proporcao_duplicados: valor=0.04065040650406504 limiar <= 0.1
+2026-11-02 21:05:54,875 INFO ok [informativa] eventos_lote_latencia_ingestao_p95_s: valor=0.098 limiar <= 10.0
+2026-11-02 21:05:54,875 INFO ok [informativa] eventos_lote_latencia_negativa: valor=0.0 limiar = 0.0
+2026-11-02 21:05:58,466 INFO query ok job=710c11ab-c761-4c15-8161-a88c36c3c5ba estimado=70.6 KiB faturado=20.0 MiB duracao=2.9s
+2026-11-02 21:06:02,025 INFO query ok job=4449a4cf-b1d5-44fb-a9d6-f4451e7fc8e0 estimado=102.5 KiB faturado=20.0 MiB duracao=3.0s
+2026-11-02 21:06:11,659 INFO query ok job=5d461c6d-662a-417c-81f6-a704630850c9 estimado=0 B faturado=0 B duracao=1.4s
+2026-11-02 21:06:14,936 INFO lote 20261103T000540Z_f8a9ac: 369 lidos, 346 válidos novos, 15 duplicados, 8 inválidos | latência de ingestão p50 0.073s p95 0.098s | ponta a ponta p95 122.3s
+2026-11-02 21:07:16,959 INFO query ok job=261f5eba-3967-4aa1-8c1e-52135b14b54e estimado=24 B faturado=10.0 MiB duracao=1.5s
+2026-11-02 21:07:20,871 INFO query ok job=19211d78-c13e-420c-8033-e260c3706d31 estimado=92.5 KiB faturado=30.0 MiB duracao=3.2s
+2026-11-02 21:07:22,864 INFO query ok job=b675c379-e6db-48a4-8b40-06dcb64f42b1 estimado=0 B faturado=0 B duracao=1.4s
+2026-11-02 21:07:31,433 INFO query ok job=f32edeb7-4659-4017-abac-c2d4f1b8c153 estimado=0 B faturado=0 B duracao=1.4s
+2026-11-02 21:07:34,286 INFO lote 20261103T000714Z_0af191: 0 lidos, 0 válidos novos, 0 duplicados, 0 inválidos | latência de ingestão p50 0.000s p95 0.000s | ponta a ponta p95 0.0s
+2026-11-02 21:08:36,660 INFO query ok job=51cbfe62-0c1b-4db9-83d8-3dfa360d7f2f estimado=32 B faturado=10.0 MiB duracao=1.8s
+2026-11-02 21:08:40,220 INFO query ok job=20dc870d-00f6-4cf3-ac11-2bca18545758 estimado=92.5 KiB faturado=30.0 MiB duracao=2.7s
+2026-11-02 21:08:42,194 INFO query ok job=c6015623-14bb-4bf7-bb22-1c9ce2c02565 estimado=0 B faturado=0 B duracao=1.4s
+2026-11-02 21:08:51,817 INFO query ok job=2e9c8341-ca97-4695-85c5-562aeb333f71 estimado=0 B faturado=0 B duracao=1.3s
+2026-11-02 21:08:55,403 INFO lote 20261103T000834Z_6cd542: 0 lidos, 0 válidos novos, 0 duplicados, 0 inválidos | latência de ingestão p50 0.000s p95 0.000s | ponta a ponta p95 0.0s

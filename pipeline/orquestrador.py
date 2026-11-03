@@ -46,6 +46,7 @@ from typing import Any, Callable, Iterable, TypeVar
 
 from config.settings import RAIZ, Settings, carregar
 from pipeline.bq import ClienteBQ, ResultadoQuery
+from pipeline.observabilidade import configurar_logs, rodar_com_alerta
 from pipeline.ops import (
     GravadorLote,
     RegistroEtapa,
@@ -403,7 +404,6 @@ def executar(
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--camadas", nargs="+", choices=list(CAMADAS), default=list(CAMADAS))
     parser.add_argument(
@@ -419,6 +419,7 @@ def main() -> None:
     args = parser.parse_args()
 
     s = carregar()
+    configurar_logs(s, "orquestrador")
     cliente = ClienteBQ(s)
     gravar = gravador_bigquery(cliente.client, f"{s.gcp_project}.{s.ds_ops}.execucoes")
     gravar_qualidade = gravador_lote_bigquery(
@@ -432,4 +433,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    rodar_com_alerta("orquestrador", main)

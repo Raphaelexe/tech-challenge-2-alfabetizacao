@@ -60,6 +60,26 @@ if gcloud pubsub topics describe "$PUBSUB_TOPIC" >/dev/null 2>&1; then
 else
   gcloud pubsub topics create "$PUBSUB_TOPIC"
 fi
-# A assinatura BigQuery é criada na fase 3, junto com a tabela bronze.eventos_stream.
+
+echo "==> Tabelas do streaming"
+sed "s/\${GCP_PROJECT}/$GCP_PROJECT/g" "$RAIZ/infra/sql/streaming.sql" \
+  | bq --project_id="$GCP_PROJECT" --location="$BQ_LOCATION" query --use_legacy_sql=false
+
+# A assinatura BigQuery grava com a conta de serviço do Pub/Sub, que precisa poder
+# escrever só nesta tabela (permissão no nível da tabela, não do projeto).
+NUMERO_PROJETO="$(gcloud projects describe "$GCP_PROJECT" --format='value(projectNumber)')"
+CONTA_PUBSUB="service-${NUMERO_PROJETO}@gcp-sa-pubsub.iam.gserviceaccount.com"
+echo "==> Permissão de escrita em bronze.eventos_stream para $CONTA_PUBSUB"
+bq add-iam-policy-binding --member="serviceAccount:$CONTA_PUBSUB" \
+  --role=roles/bigquery.dataEditor "$GCP_PROJECT:bronze.eventos_stream" >/dev/null
+
+ASSINATURA="${PUBSUB_TOPIC}-bq"
+echo "==> Assinatura BigQuery $ASSINATURA -> bronze.eventos_stream"
+if gcloud pubsub subscriptions describe "$ASSINATURA" >/dev/null 2>&1; then
+  echo "    assinatura já existe"
+else
+  gcloud pubsub subscriptions create "$ASSINATURA" --topic="$PUBSUB_TOPIC" \
+    --bigquery-table="$GCP_PROJECT:bronze.eventos_stream" --write-metadata
+fi
 
 echo "==> Pronto."

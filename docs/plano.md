@@ -413,8 +413,11 @@ Legenda: `[x]` feito · `[~]` código pronto, falta rodar no GCP / gerar evidên
   (99,07% município × meta; 24/26/27 UFs; ≤ 3 UF e ≤ 802 município sem microdado).
 - [x] `gold.validacao_microdado`: taxa recalculada comparada com a publicada; diferenças
   investigadas e documentadas (§10). Brasil 2024 bate com exatidão; SP 2023 ausente da fonte.
-- [ ] Produtor + assinatura BigQuery + micro-lote com dedup, quarentena, latência e `origem`.
-- [ ] Métrica de log e política de alerta por e-mail; testar com `scripts/injetar_falha.sql`.
+- [x] Produtor + assinatura BigQuery + micro-lote com dedup, quarentena, latência e `origem`
+  (`streaming/`, `infra/sql/streaming.sql`, `make produtor`, `make micro-lote`), executado.
+- [x] Política de alerta baseada em log (Cloud Logging → Monitoring → e-mail) em
+  `pipeline/observabilidade.py` e `scripts/criar_alerta.py`, criada e testada com
+  `--injetar-falha`: e-mail em menos de 1 minuto.
 - [x] Exportar Gold em Parquet para o bucket (insumo da fase 3 do curso): `EXPORT DATA` em
   `gs://<bucket>/gold/<tabela>/id_execucao=<id>/`, executado para as 6 tabelas.
 
@@ -583,3 +586,33 @@ match, divergências de chaves, tamanhos de tabela, etc.).
     (55,6 e 83,1), e `municipio` está errado (91,67 e 99,15).
   - **Custo:** `validacao_microdado` é a única leitura relevante (212 MiB); as outras tabelas
     ficam no piso de 10 MB por tabela referenciada.
+- **2026-11-03 — streaming implementado:**
+  - **Recepção:** assinatura BigQuery com `write_metadata` em `bronze.eventos_stream`. A
+    permissão de escrita da conta do Pub/Sub é no nível da tabela.
+  - **Micro-lote:** processa por marca d'água (`ops.marca_dagua_stream`), com margem de 30 s.
+    Validação com 7 motivos; dedup por `id_evento` no lote e contra a Silver; `MERGE`
+    idempotente; quarentena por `message_id`.
+  - **Gold:** é uma VIEW (`gold.indicador_municipio_atualizado`), então o evento chega à
+    camada analítica sem uma cópia extra.
+  - **Rastreio dos defeitos:** o produtor marca `tipo_envio`, e a regra bloqueante
+    `eventos_lote_defeito_nao_detectado` confere se o validador pegou todos os defeitos
+    injetados.
+  - **Desvio em relação ao plano:** a latência de ingestão usa `publish_time − ts_evento`;
+    o plano previa `ts_ingestao` separado, mas é o próprio `publish_time`.
+- **2026-11-02 — streaming executado** (`evidencias/fase3_streaming_terminal.txt`):
+  - **Conciliação exata:** 626 mensagens = 588 válidas novas + 26 duplicadas + 12 inválidas,
+    divididas em dois lotes com dados.
+  - **Latência de ingestão:** p50 de 0,073 s e p95 até 0,976 s. Ponta a ponta, o p95 fica
+    entre 80 e 122 s, dominado pelo intervalo do lote.
+  - **Custo:** ≈ 100 MiB por lote com eventos e ≈ 40 MiB por lote vazio, tudo pelo piso de
+    10 MB. Um lote a cada 5 min cabe na cota gratuita de 1 TiB/mês.
+- **2026-11-02 — alerta:**
+  - **Tipo de política:** baseada em log (`conditionMatchedLog`), em vez de métrica de log +
+    limiar. Ela dispara a cada entrada ERROR, sem esperar janela de agregação.
+  - **Volume de log:** só WARNING para cima vai ao Cloud Logging (FinOps), com transporte
+    síncrono para não perder o erro na saída do processo.
+  - **Exceções fora das etapas:** viram CRITICAL em `rodar_com_alerta`.
+- **2026-11-02 — alerta testado:**
+  - **Tempo medido:** erro às 21:31 e e-mail às 21:31 (incidente às 00:31 UTC), ou seja,
+    menos de 1 minuto.
+  - **Evidências:** `evidencias/fase4_*`.

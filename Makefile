@@ -6,7 +6,7 @@ else
 PY      = $(VENV)/bin/python
 endif
 
-.PHONY: setup infra perfil perfil-sem-ops investigar bronze silver gold pipeline testes
+.PHONY: setup infra alerta perfil perfil-sem-ops investigar bronze silver gold pipeline produtor micro-lote testes
 
 setup:            ## cria o ambiente virtual e instala dependências
 	$(PYTHON) -m venv $(VENV)
@@ -15,6 +15,9 @@ setup:            ## cria o ambiente virtual e instala dependências
 
 infra:            ## cria datasets, tabelas ops, bucket e tópico no GCP
 	bash infra/setup.sh
+
+alerta:           ## canal de e-mail + política de alerta do Cloud Monitoring (ALERT_EMAIL)
+	$(PY) -m scripts.criar_alerta
 
 perfil:           ## perfil da fonte, gravando em ops.execucoes
 	$(PY) -m scripts.perfil_fonte
@@ -36,6 +39,12 @@ gold:             ## Gold com regras e exportação Parquet para o bucket
 
 pipeline:         ## todas as camadas implementadas, em ordem
 	$(PY) -m pipeline.orquestrador
+
+produtor:         ## streaming: publica eventos simulados no Pub/Sub (5/s por 2 min)
+	$(PY) -m streaming.produtor --eventos-por-segundo 5 --duracao-s 120
+
+micro-lote:       ## streaming: 10 micro-lotes, um por minuto
+	$(PY) -m streaming.micro_lote --lotes 10 --intervalo-s 60
 
 testes:           ## testes automatizados (não precisam do GCP)
 	$(PY) -m pytest -q

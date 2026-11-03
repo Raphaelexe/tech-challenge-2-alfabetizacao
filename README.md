@@ -11,7 +11,8 @@ com ingestão batch e streaming dos dados do Indicador Criança Alfabetizada
 > bloqueantes aprovadas), com falha demonstrada (`evidencias/fase2_pipeline_falhou.jpg`).
 > Gold implementada e executada: 6 tabelas publicadas e exportadas em Parquet para o bucket
 > (execuções `20261102T230818Z_2d4702` e `20261102T232157Z_b0292a`). Streaming e alertas
-> estão **planejados para as próximas etapas**.
+> Streaming implementado e executado (`evidencias/fase3_streaming_terminal.txt`). Alerta por
+> e-mail implementado e testado (`evidencias/fase4_falha_email.jpg`).
 
 ## O que já existe
 
@@ -27,8 +28,10 @@ com ingestão batch e streaming dos dados do Indicador Criança Alfabetizada
 | Silver | `pipeline/silver/*.sql`, `pipeline/orquestrador.py` | 9 tabelas tratadas, gravadas em staging e publicadas só depois das regras |
 | Qualidade | `quality/regras.yaml`, `quality/runner.py` | Regras bloqueantes e informativas, gravadas em `ops.qualidade` |
 | Gold | `pipeline/gold/*.sql`, `pipeline/orquestrador.py` | 6 tabelas analíticas, com as mesmas regras antes de publicar e exportação Parquet para o bucket |
+| Streaming | `streaming/produtor.py`, `streaming/micro_lote.py`, `streaming/sql/*.sql`, `infra/sql/streaming.sql` | Pub/Sub → assinatura BigQuery → micro-lote com validação, quarentena, deduplicação, latência e Gold com `origem` |
+| Logs e alerta | `pipeline/observabilidade.py`, `scripts/criar_alerta.py` | Erros no Cloud Logging e política de alerta do Cloud Monitoring que manda e-mail |
 | Demonstração de falha | `scripts/injetar_falha/*.sql`, `--injetar-falha` | Injeta dado ruim na staging para provar que a regra bloqueante impede a publicação |
-| Testes | `tests/test_fase1.py`, `tests/test_bronze.py`, `tests/test_silver.py`, `tests/test_gold.py` | 202 testes, sem dependência do GCP |
+| Testes | `tests/test_fase1.py`, `tests/test_bronze.py`, `tests/test_silver.py`, `tests/test_gold.py`, `tests/test_streaming.py`, `tests/test_observabilidade.py` | 238 testes, sem dependência do GCP |
 
 ## Como executar
 
@@ -358,6 +361,187 @@ primeiras tabelas são da execução `20261102T230818Z_2d4702`):
 A exportação Parquet de cada tabela faturou mais 10 MiB. Só `validacao_microdado` lê
 volume real (212 MiB dos microdados). Nas outras, o custo é o piso de 10 MB por tabela
 referenciada.
+
+## Streaming
+
+Simula atualizações de indicador chegando em tempo quase real: uma "nova medição" de 2025
+para um município. Os números são **simulados**. Eles partem da taxa municipal oficial de
+2024 somada a um ruído e nunca se misturam ao dado oficial sem identificação.
+
+```
+streaming/produtor.py ──► Pub/Sub (tópico eventos-alfabetizacao)
+                              │ assinatura BigQuery (write_metadata)
+                              ▼
+                        bronze.eventos_stream      mensagem como chegou + message_id + publish_time
+                              │ streaming/micro_lote.py, a cada N segundos, janela por marca d'água
+                              ▼
+                        silver.eventos_lote_stg ── regras (ops.qualidade) ── bloqueante? para
+                              │ MERGE por id_evento          │ MERGE por message_id
+                              ▼                              ▼
+                        silver.eventos_validos         silver.eventos_quarentena (motivo)
+                              │
+                              ▼
+                        gold.indicador_municipio_atualizado (VIEW: oficial + simulado, coluna origem)
+```
+
+**Mensageria.** O produtor publica JSON no tópico com os atributos `origem=simulado` e
+`tipo_envio`. A assinatura do tipo BigQuery grava cada mensagem em `bronze.eventos_stream`
+sem transformação. Isso inclui JSON quebrado, que precisa chegar à quarentena. A gravação
+usa a conta de serviço do Pub/Sub, com permissão de escrita só nessa tabela
+(`infra/setup.sh`).
+
+**Evento:**
+```json
+{"id_evento": "uuid", "tipo": "atualizacao_indicador", "id_municipio": "4314902", "ano": 2025,
+ "rede": "municipal", "taxa_alfabetizacao": 47.31, "ts_evento": "2026-11-03T12:00:00.123Z",
+ "versao_schema": 1}
+```
+
+**Processamento incremental (micro-lote).** Cada execução segue estes passos:
+1. Lê a marca d'água (`ops.marca_dagua_stream`) e processa a janela `(desde, ate]` de
+   `publish_time`. O `ate` fica 30 s antes de "agora", para não pular mensagem que a
+   assinatura ainda está gravando.
+2. Valida cada evento. O primeiro defeito encontrado vira o `motivo` da quarentena:
+   `json_invalido`, `campo_obrigatorio_ausente`, `tipo_desconhecido`,
+   `municipio_inexistente`, `taxa_fora_0_100`, `ano_fora_da_trajetoria` ou
+   `rede_desconhecida`.
+3. Roda as regras do lote. As bloqueantes exigem `origem = simulado` em toda mensagem e
+   que todo defeito injetado pelo produtor tenha sido detectado.
+4. Faz `MERGE` dos válidos e da quarentena, grava a marca d'água e recria a view da Gold.
+
+**Inválidos e duplicados.** O produtor injeta cerca de 3% de inválidos (5 tipos de defeito)
+e reenvia cerca de 5% das mensagens com o mesmo `id_evento`, como faz um cliente depois
+de um timeout. O Pub/Sub entrega pelo menos uma vez e pode somar duplicatas próprias,
+com o mesmo `message_id`. O micro-lote trata os dois casos:
+- **duplicado no lote:** mantém a 1ª publicação de cada `id_evento`;
+- **duplicado de lote anterior:** marca como duplicado o `id_evento` que já está na
+  Silver;
+- **reprocessamento:** o `MERGE ... WHEN NOT MATCHED` não reinsere nada.
+
+**Latência medida de fato.** São três relógios:
+- `ts_evento`, do produtor, gravado quando o evento é criado;
+- `publish_time`, do servidor do Pub/Sub;
+- `ts_processamento`, do micro-lote.
+
+`latencia_ingestao_s = publish_time − ts_evento` (produzido → ingerido) e
+`latencia_ponta_a_ponta_s = ts_processamento − ts_evento`. Os p50 e p95 de cada lote vão
+para `ops.execucoes` (`latencia_p50_s`, `latencia_p95_s`). Como os relógios são de
+máquinas diferentes, latência negativa indica desvio de relógio, e uma regra informativa
+conta esses casos.
+
+**Batch × streaming:**
+
+| Aspecto | Batch (Bronze → Gold) | Streaming (micro-lote) |
+| --- | --- | --- |
+| Gatilho | Execução do orquestrador | Chegada de mensagem no tópico; processada a cada N segundos |
+| Frequência | Por atualização da fonte (anual na prática) | Contínua; lote a cada 60 s no `make micro-lote` |
+| Latência | Horas a dias (até a próxima execução) | Segundos a minutos: ingestão medida em `latencia_*`, mais a espera do lote |
+| Unidade | Tabela inteira (snapshot) | Janela de `publish_time` |
+| Garantia de entrega | Lote completo ou nada; contagem conferida com a fonte | Pelo menos uma vez; exatamente uma vez na Silver por `MERGE` em `id_evento` |
+| Dado ruim | Regra bloqueante para a camada | Evento vai para a quarentena; bloqueante (ex.: origem errada) para o lote |
+| Reprocessamento | Rodar a camada de novo (Silver/Gold reconstruíveis) | Voltar a marca d'água; o `MERGE` é idempotente |
+
+**Execução registrada** (`evidencias/fase3_streaming_terminal.txt`). O produtor publicou
+626 mensagens em 2 minutos, e 5 micro-lotes rodaram em paralelo, um por minuto:
+
+| | Produtor enviou | Micro-lotes processaram |
+| --- | ---: | ---: |
+| Válidos | 588 | 242 + 346 = 588 novos em `eventos_validos` |
+| Duplicados (mesmo `id_evento`) | 26 | 11 + 15 = 26 descartados |
+| Inválidos | 12 (json_invalido 3, sem_taxa 2, municipio_inexistente 6, tipo_desconhecido 1) | 4 + 8 = 12 na quarentena |
+| Total | 626 | 257 + 369 = 626 |
+
+A conta fecha exatamente: nada se perdeu e nada entrou duas vezes. Todo defeito
+injetado foi detectado (`eventos_lote_defeito_nao_detectado = 0`). O 1º lote e os dois
+últimos leram 0 mensagens: o 1º porque o produtor tinha acabado de começar e a margem é
+de 30 s, os últimos porque o produtor já tinha terminado.
+
+| Latência | p50 | p95 |
+| --- | ---: | ---: |
+| Ingestão (`publish_time − ts_evento`) | 0,073 s | 0,098 s a 0,976 s |
+| Ponta a ponta (`ts_processamento − ts_evento`) | — | 80 s a 122 s |
+
+A ingestão leva menos de 1 s. Quem domina a latência ponta a ponta é a espera do
+micro-lote (intervalo de 60 s mais margem de 30 s). É esse o ponto a ajustar se o negócio
+precisar de números mais frescos.
+
+**Custo medido por micro-lote** (bytes faturados nos logs):
+
+| Consulta | Lote com eventos | Lote vazio |
+| --- | ---: | ---: |
+| marca d'água | 10 MiB | 10 MiB |
+| staging (Bronze + diretório + Silver) | 30 MiB | 30 MiB |
+| estatísticas | 10 MiB | 0 |
+| regras do lote | 10 MiB | — |
+| `MERGE` válidos + quarentena | 40 MiB | — |
+| view da Gold | 0 | 0 |
+| **Total** | **≈ 100 MiB** | **≈ 40 MiB** |
+
+O volume de dados lido é de dezenas de KiB. O custo vem do piso de 10 MB por tabela
+referenciada, então a cadência é a principal alavanca:
+
+| Cadência (com eventos o tempo todo) | Faturado por mês | Custo on-demand (US$ 6,25/TiB, 1 TiB grátis) |
+| --- | ---: | ---: |
+| 1 lote por minuto | ≈ 4,1 TiB | ≈ US$ 19 |
+| 1 lote a cada 5 minutos | ≈ 0,82 TiB | US$ 0 (dentro da cota gratuita) |
+| 1 lote a cada 15 minutos | ≈ 0,27 TiB | US$ 0 |
+
+**Para rodar** (depois de `bash infra/setup.sh`, que cria as tabelas, a permissão e a
+assinatura), em dois terminais:
+```bash
+.venv/Scripts/python -m streaming.produtor --eventos-por-segundo 5 --duracao-s 120
+.venv/Scripts/python -m streaming.micro_lote --lotes 5 --intervalo-s 60
+```
+
+## Monitoramento
+
+| O que | Onde fica | Como |
+| --- | --- | --- |
+| Execução de cada etapa | `ops.execucoes` (append, particionada por dia) | `registrar_etapa`: início, fim, duração, linhas de entrada e saída, bytes estimados/processados/faturados, job ids, status e mensagem de erro |
+| Qualidade | `ops.qualidade` (append) | Cada regra em cada execução: valor medido, limiar, aprovada ou reprovada |
+| Latência do streaming | `ops.execucoes.latencia_p50_s` / `latencia_p95_s` | p50 e p95 de `publish_time − ts_evento` em cada micro-lote |
+| Volume | `ops.execucoes.linhas_*`, `bytes_faturados` | Por etapa e por execução |
+| Progresso do streaming | `ops.marca_dagua_stream` | Janela processada e eventos lidos em cada lote |
+| **Falha** | Cloud Logging → Cloud Monitoring → e-mail | Ver abaixo |
+
+As tabelas `ops` acumulam histórico. Nenhuma execução sobrescreve a anterior, porque a
+gravação é por load job em modo `WRITE_APPEND`.
+
+**Alerta de falha.** Os três processos (`pipeline.orquestrador`, `streaming.micro_lote`,
+`streaming.produtor`) mandam os logs de WARNING para cima ao Cloud Logging, no log
+`pipeline-alfabetizacao` com o label `pipeline=alfabetizacao`. O envio é síncrono, para o
+erro chegar antes de o processo sair. Toda etapa que falha gera um ERROR (o
+`registrar_etapa` grava `falhou` e propaga a exceção). Qualquer exceção fora das etapas,
+como configuração ou permissão, vira CRITICAL em `rodar_com_alerta`.
+
+`scripts/criar_alerta.py` (`make alerta`) cria, de forma idempotente:
+- o **canal de notificação** por e-mail para o `ALERT_EMAIL` do `.env`;
+- a **política de alerta baseada em log** "Pipeline alfabetização: falha", que abre um
+  incidente para qualquer entrada `severity>=ERROR` desse log. O limite é de 1 e-mail a
+  cada 5 minutos, e o incidente fecha sozinho em 30 minutos.
+
+INFO não vai para a nuvem: fica no terminal, para não pagar ingestão de log sem uso.
+
+**Em produção, quem descobre que a pipeline quebrou, e em quanto tempo?** Quem descobre
+é o time, pelo e-mail configurado em `ALERT_EMAIL`, **em menos de 1 minuto**. No teste com
+`--injetar-falha`, o log de ERROR foi registrado no Cloud Logging às 21:31:38. O e-mail
+"[ALERT - Error] Pipeline alfabetização: falha" chegou às 21:31 (9:31 PM, incidente aberto
+às 00:31 UTC). O e-mail
+traz o passo a passo da política: olhar `ops.execucoes` e `ops.qualidade`, sabendo que a
+camada seguinte não foi publicada.
+
+| Evidência | Arquivo |
+| --- | --- |
+| Erro no terminal | `evidencias/fase4_falha_terminal.jpg` |
+| Entradas ERROR e CRITICAL no Cloud Logging | `evidencias/fase4_logs_monitor_erro.jpg`, `evidencias/fase4_logs_monitor_critico.jpg` |
+| Filtro da política casando com as entradas da pipeline | `evidencias/fase4_filtro_da_politica.png` |
+| E-mail do Cloud Monitoring | `evidencias/fase4_falha_email.jpg` |
+
+Ficam fora deste alerta:
+- **a pipeline não rodar:** sem execução, não há erro. Uma política de ausência em
+  `ops.execucoes` (ex.: nenhuma linha em 26 h) está **planejada**;
+- **o micro-lote travar sem erro:** a marca d'água para de avançar. Isso aparece em
+  `ops.marca_dagua_stream`, mas também ainda não há alerta automático.
 
 ## Aplicação em IA
 

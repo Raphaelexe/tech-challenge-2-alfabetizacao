@@ -765,3 +765,78 @@ regras:
       SELECT COUNTIF(alvo_taxa_alfabetizacao_proximo_ano IS NULL
                      AND ano_base < (SELECT MAX(ano_base) FROM {tabela}))
       FROM {tabela}
+
+  # ============================================================== STREAMING
+  # Rodam sobre silver.eventos_lote_stg, a janela do micro-lote (streaming/micro_lote.py).
+  # Bloqueante reprovada: o MERGE não roda e a marca d'água não avança.
+
+  - nome: eventos_lote_origem_nao_simulada
+    tabela: eventos_lote
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: >-
+      Toda mensagem do tópico precisa do atributo origem=simulado. É o que garante que
+      número gerado pelo simulador nunca entre na Gold sem identificação.
+    sql: SELECT COUNTIF(origem IS DISTINCT FROM 'simulado') FROM {tabela}
+
+  - nome: eventos_lote_valido_inconsistente
+    tabela: eventos_lote
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: Evento aceito como válido sem UF, sem ts_evento ou com taxa fora de 0-100 indica falha no validador.
+    sql: >-
+      SELECT COUNTIF(motivo_invalido IS NULL
+        AND (sigla_uf IS NULL OR ts_evento IS NULL OR taxa_alfabetizacao NOT BETWEEN 0 AND 100))
+      FROM {tabela}
+
+  - nome: eventos_lote_defeito_nao_detectado
+    tabela: eventos_lote
+    severidade: bloqueante
+    operador: "="
+    limiar: 0
+    descricao: >-
+      O produtor marca cada mensagem com o tipo de envio (atributo tipo_envio). Toda
+      mensagem com defeito injetado precisa ser rejeitada pelo validador.
+    sql: >-
+      SELECT COUNTIF(motivo_invalido IS NULL AND tipo_envio NOT IN ('valido', 'duplicado'))
+      FROM {tabela}
+
+  - nome: eventos_lote_proporcao_invalidos
+    tabela: eventos_lote
+    severidade: informativa
+    operador: "<="
+    limiar: 0.05
+    descricao: O produtor injeta ~3% de inválidos; acima de 5% indica produtor ou contrato do evento quebrado.
+    sql: SELECT SAFE_DIVIDE(COUNTIF(motivo_invalido IS NOT NULL), COUNT(*)) FROM {tabela}
+
+  - nome: eventos_lote_proporcao_duplicados
+    tabela: eventos_lote
+    severidade: informativa
+    operador: "<="
+    limiar: 0.10
+    descricao: O produtor reenvia ~5% das mensagens; a entrega pelo menos uma vez do Pub/Sub pode somar alguns.
+    sql: SELECT SAFE_DIVIDE(COUNTIF(duplicado), COUNT(*)) FROM {tabela}
+
+  - nome: eventos_lote_latencia_ingestao_p95_s
+    tabela: eventos_lote
+    severidade: informativa
+    operador: "<="
+    limiar: 10
+    descricao: >-
+      p95 de publish_time - ts_evento (segundos) dos eventos válidos. Medido: 0,098 a
+      0,976 s (evidencias/fase3_streaming_terminal.txt).
+    sql: >-
+      SELECT APPROX_QUANTILES(IF(motivo_invalido IS NULL, latencia_ingestao_s, NULL), 100 IGNORE NULLS)[SAFE_OFFSET(95)]
+      FROM {tabela}
+
+  - nome: eventos_lote_latencia_negativa
+    tabela: eventos_lote
+    severidade: informativa
+    operador: "="
+    limiar: 0
+    descricao: >-
+      publish_time anterior a ts_evento só acontece se o relógio do produtor estiver
+      adiantado em relação ao do Pub/Sub; mede o desvio de relógio.
+    sql: SELECT COUNTIF(latencia_ingestao_s < 0) FROM {tabela}

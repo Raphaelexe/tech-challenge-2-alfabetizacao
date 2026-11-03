@@ -104,7 +104,7 @@ def test_renderizar_silver_sem_carga_falha_com_mensagem_clara():
 # --------------------------------------------------------------- regras.yaml
 
 def test_regras_cobrem_toda_tabela_silver_e_gold_e_so_elas():
-    tabelas = {e.tabela for e in SILVER} | {e.tabela for e in CAMADAS["gold"]}
+    tabelas = {e.tabela for e in SILVER} | {e.tabela for e in CAMADAS["gold"]} | {"eventos_lote"}
     assert {r.tabela for r in REGRAS} == tabelas
 
 
