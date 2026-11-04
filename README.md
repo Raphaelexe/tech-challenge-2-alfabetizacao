@@ -6,6 +6,8 @@ que integra, com ingestão batch e streaming, os dados do Indicador Criança Alf
 qualidade antes de publicar cada camada, mede o próprio custo e avisa por e-mail quando
 falha.
 
+**Integrantes:** Halena Kulmann Duarte e Raphael Luciani
+
 **Vídeo executivo:** _link a incluir_
 
 | Resultado | Onde ver |
@@ -16,6 +18,23 @@ falha.
 | Alerta por e-mail em menos de 1 minuto após a falha | [Monitoramento](#monitoramento) |
 | Custo projetado em produção: ≈ US$ 5,62/mês sem cota gratuita, ≈ US$ 0,38 com ela | [FinOps](#finops) |
 | Base de features para a fase 3, sem vazamento de alvo, exportada em Parquet | [Aplicação em IA](#aplicação-em-ia) |
+
+## Sumário
+
+1. [Contexto do problema](#contexto-do-problema)
+2. [Arquitetura](#arquitetura)
+3. [Tecnologias](#tecnologias)
+4. [Estrutura do repositório](#estrutura-do-repositório)
+5. [Como executar](#como-executar)
+6. [Achados do perfil](#achados-do-perfil-etapa-1)
+7. [Bronze](#bronze) · [Silver](#silver) · [Qualidade de dados](#qualidade-de-dados) · [Gold](#gold)
+8. [Streaming](#streaming)
+9. [Monitoramento](#monitoramento)
+10. [FinOps](#finops)
+11. [Aplicação em IA](#aplicação-em-ia)
+12. [Decisões arquiteturais](#decisões-arquiteturais)
+13. [Evidências](#evidências)
+14. [Limitações conhecidas](#limitações-conhecidas) · [Evolução futura](#evolução-futura) · [Diferenciais](#diferenciais-do-enunciado)
 
 ## Contexto do problema
 
@@ -170,7 +189,7 @@ os mesmos passos no Git Bash:
 python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt
 .venv/Scripts/python -m pytest -q
 bash infra/setup.sh
-.venv/Scripts/python -m scripts.criar_alerta
+.venv/Scripts/python -m scripts.criar_alerta                    # ver a nota abaixo
 .venv/Scripts/python -m scripts.perfil_fonte
 .venv/Scripts/python -m pipeline.orquestrador                     # bronze, silver e gold
 .venv/Scripts/python -m pipeline.orquestrador --camadas gold --tabelas features_ml
@@ -178,6 +197,12 @@ bash infra/setup.sh
 .venv/Scripts/python -m streaming.micro_lote --lotes 5 --intervalo-s 60
 .venv/Scripts/python -m scripts.medir_custos                      # quantidades para o FinOps
 ```
+
+**Nota sobre o alerta.** O canal de e-mail e a política levam alguns minutos para ficar
+disponíveis no Cloud Monitoring depois de criados. Se `make alerta` falhar na primeira
+vez, rode de novo depois de alguns minutos: o script é idempotente e só cria o que
+falta. Pelo mesmo motivo, espere alguns minutos antes de testar o alerta com
+`--injetar-falha`.
 
 Para olhar a fonte antes de criar a infraestrutura: `make perfil-sem-ops`. Para reproduzir
 a investigação: `python -m scripts.investigar_fonte`, que lê, entre outras, a staging
@@ -231,7 +256,7 @@ nem sobrescrita de partição. Cada linha leva três colunas de controle:
 | `fonte` | tabela de origem, ex.: `basedosdados.br_inep_avaliacao_alfabetizacao.uf` |
 
 Duas execuções no mesmo dia geram duas cargas na mesma partição, com `id_execucao`
-diferentes. A Silver vai ler a carga mais recente por `id_execucao`. Cada `INSERT` tem
+diferentes. A Silver lê a carga aprovada mais recente (por `id_execucao`). Cada `INSERT` tem
 um `NOT EXISTS` por (`dt_ingestao`, `id_execucao`), então a retentativa do orquestrador
 não duplica uma carga que já tinha sido gravada.
 
@@ -250,8 +275,9 @@ com espera de 5 s e 10 s. Os demais erros sobem direto.
 
 **Custo.** A carga de `alunos` escaneia 256,1 MiB na fonte (dry run medido no perfil);
 as outras seis tabelas somam menos de 3 MiB. O tamanho do diretório não pôde ser lido
-(`__TABLES__` de `br_bd_diretorios_brasil` dá 403) e será medido pela primeira carga em
-`ops.execucoes`. As tabelas são clusterizadas por `ano` e
+antes da carga (`__TABLES__` de `br_bd_diretorios_brasil` dá 403). Ele foi medido na
+própria carga: 5.571 linhas, 370 KiB estimados e 20 MiB faturados (o piso de 10 MB por
+tabela referenciada). As tabelas são clusterizadas por `ano` e
 `id_municipio` ou `sigla_uf`. `bronze.alunos` exige filtro de partição
 (`require_partition_filter`), para nenhuma leitura varrer todas as cargas sem querer.
 
@@ -298,6 +324,16 @@ uma query por regra multiplicaria esse piso. O runner grava todos os resultados 
 `ops.qualidade` (um load job por tabela) antes de decidir. Se alguma bloqueante
 reprovar, levanta `QualidadeBloqueanteError`. Nenhum `except` engole esse erro: o
 `registrar_etapa` grava `status = 'falhou'` em `ops.execucoes` e propaga a exceção.
+
+O enunciado alerta para o `except` genérico que registra a falha e deixa o processo
+terminar com sucesso. O código tem 4 `except Exception`, e nenhum faz isso:
+
+| Onde | O que faz |
+| --- | --- |
+| `pipeline/ops.py` (`registrar_etapa`) | Se a gravação em `ops.execucoes` falhar, registra o erro. Se a etapa já tinha falhado, a exceção original continua subindo; senão, a falha de gravação sobe |
+| `pipeline/orquestrador.py` (`com_retentativa`) | Repete só erro transitório do BigQuery (5xx, 429), até 3 vezes. Qualquer outro erro, ou o último transitório, sobe com `raise` |
+| `pipeline/observabilidade.py` (`configurar_logs`) | Se o Cloud Logging estiver indisponível, a pipeline roda, mas registra um ERROR dizendo que falhas daquela execução não vão alertar |
+| `scripts/perfil_fonte.py` | O perfil da fonte segue sem a contagem de linhas quando `__TABLES__` é bloqueado (fora da pipeline) |
 
 Na Silver são 51 regras: 44 bloqueantes e 7 informativas. A Gold acrescenta 29 (22
 bloqueantes e 7 informativas; ver [Gold](#gold)), e o micro-lote do streaming mais 7 (3
@@ -365,7 +401,7 @@ SELECT 'publicada', COUNTIF(rede = '9') FROM `SEU_PROJETO.silver.resultado_munic
 | Consultas 1 e 2 | `evidencias/fase2_demonstracao_falha1.jpg`, `..._falha2.jpg` | regra `reprovada` em `ops.qualidade` e etapa `falhou` em `ops.execucoes` |
 | Consulta 3 | `evidencias/fase2_demonstracao_falha3.jpg` | 1 linha com rede `'9'` na staging e **0** na tabela publicada |
 
-As outras 8 regras da tabela aprovaram na mesma execução. A regra
+As outras 7 regras da tabela (6 bloqueantes e 1 informativa) aprovaram na mesma execução. A regra
 `resultado_municipio_vazio` mediu 23.996 linhas: as 23.995 da fonte mais a linha injetada.
 
 Para voltar ao estado normal, rode a mesma tabela sem a opção. A staging é recriada a
@@ -411,8 +447,9 @@ As seis entidades do enunciado chegam à Gold, e um teste garante isso
 - **Ponderação.** `indicador_brasil` usa a taxa oficial e mostra, ao lado, a taxa
   recalculada dos microdados, a `media_ponderada_ufs` (pelos pesos dos avaliados) e a
   `media_simples_ufs`. Esta última está com esse nome justamente por não ser o indicador.
-- **Origem.** Toda tabela tem `origem = 'oficial'`. O streaming vai acrescentar
-  `'simulado'`, e a coluna permite separar os dois.
+- **Origem.** Toda tabela da Gold tem `origem = 'oficial'`. Os eventos do streaming
+  chegam com `origem = 'simulado'` à view `gold.indicador_municipio_atualizado`, e a
+  coluna separa os dois.
 - **De onde vem o resultado de UF** (coluna `fonte_resultado`): `resultado_uf`; ou o único
   município da UF, quando ela não tem linha própria (DF 2024 = Brasília); ou a própria
   `meta_uf`, quando o ano só existe ali (2025).
@@ -614,8 +651,10 @@ gravação é por load job em modo `WRITE_APPEND`.
 `streaming.produtor`) mandam os logs de WARNING para cima ao Cloud Logging, no log
 `pipeline-alfabetizacao` com o label `pipeline=alfabetizacao`. O envio é síncrono, para o
 erro chegar antes de o processo sair. Toda etapa que falha gera um ERROR (o
-`registrar_etapa` grava `falhou` e propaga a exceção). Qualquer exceção fora das etapas,
-como configuração ou permissão, vira CRITICAL em `rodar_com_alerta`.
+`registrar_etapa` grava `falhou` e propaga a exceção). Toda exceção que encerra o
+processo, dentro ou fora das etapas (configuração ou permissão, por exemplo), também é
+registrada como CRITICAL em `rodar_com_alerta`. No teste, a mesma falha gerou ERROR às
+21:31:38 e CRITICAL às 21:31:42, no horário de Brasília.
 
 `scripts/criar_alerta.py` (`make alerta`) cria, de forma idempotente:
 - o **canal de notificação** por e-mail para o `ALERT_EMAIL` do `.env`;
@@ -663,7 +702,7 @@ faturou **4,12 GiB** de consultas, dentro da cota gratuita de 1 TiB/mês.
 | Prática | Onde | Efeito medido |
 | --- | --- | --- |
 | Trava de custo dupla: dry run com teto + `maximum_bytes_billed` | `pipeline/bq.py`, toda consulta | Nenhum job passou do teto de 5 GiB; a etapa mais cara (`silver_alunos_avaliados`, 3 jobs) faturou 724 MiB |
-| Colunas explícitas, sem `SELECT *` | todos os SQLs da Bronze, Silver e Gold | `validacao_microdado` lê 212 MiB dos 294 MiB de `silver.alunos_avaliados` |
+| Colunas explícitas, sem `SELECT *` sobre a fonte ou sobre alunos | todos os SQLs da Bronze e da Silver. O `SELECT *` aparece só em CTEs ou tabelas pequenas do próprio projeto: `pipeline/gold/indicador_uf.sql`, `streaming/sql/merge_validos.sql`, `streaming/sql/gold_indicador_municipio_atualizado.sql` e a exportação Parquet | `validacao_microdado` lê 212 MiB dos 294 MiB de `silver.alunos_avaliados` |
 | Partição e cluster | Bronze por `dt_ingestao` (`require_partition_filter` em `alunos`); `alunos_avaliados` por ano; cluster por município/UF | A leitura fica restrita à carga escolhida |
 | Microdados lidos uma vez só na Gold | `validacao_microdado`, reaproveitada por `indicador_brasil` e `features_ml` | 1 leitura de 212 MiB em vez de 3 |
 | Regras de uma tabela numa única consulta | `quality/runner.py` | 10 MiB por tabela, em vez de 10 MiB por regra (87 regras) |

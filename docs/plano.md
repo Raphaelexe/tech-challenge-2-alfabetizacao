@@ -357,11 +357,11 @@ tech-challenge-alfabetizacao/
 ### Checklist de clone limpo (fazer antes de entregar)
 
 - [ ] Clonar em outra pasta, criar `.env` a partir do exemplo e rodar só o que o README manda.
-- [ ] Todo caminho citado no README existe com o mesmo nome.
-- [ ] `requirements.txt` com versões fixadas.
-- [ ] Nenhum ID de projeto ou bucket fixo fora de `config/settings.py` e `.env`.
-- [ ] `git log -p | grep -i private_key` não retorna nada.
-- [ ] `pytest` passa.
+- [x] Todo caminho citado no README existe com o mesmo nome (conferido em 03/11/2026).
+- [x] `requirements.txt` com versões fixadas.
+- [x] Nenhum ID de projeto ou bucket fixo fora de `config/settings.py` e `.env` (só aparece no log de evidência).
+- [x] `git log -p | grep -i private_key` não retorna nada (além desta própria linha).
+- [x] `pytest` passa (238 testes).
 
 ## Roteiro de tarefas
 
@@ -372,8 +372,8 @@ Legenda: `[x]` feito · `[~]` código pronto, falta rodar no GCP / gerar evidên
 
 ### Fase 1 — Fundação e perfil dos dados
 
-- [ ] Criar projeto GCP, habilitar BigQuery, Pub/Sub, Cloud Storage, Logging e Monitoring;
-  configurar alerta de orçamento.
+- [~] Criar projeto GCP, habilitar BigQuery, Pub/Sub, Cloud Storage, Logging e Monitoring
+  (feito); configurar alerta de orçamento (não feito).
 - [x] Criar repositório com a estrutura acima, `.env.example` e `config/settings.py`.
 - [x] Listar colunas reais das sete tabelas via `INFORMATION_SCHEMA.COLUMNS` e registrar em
   `docs/dicionario_dados.md`.
@@ -391,8 +391,8 @@ Legenda: `[x]` feito · `[~]` código pronto, falta rodar no GCP / gerar evidên
   `alunos_avaliados` (`pipeline/silver/*.sql`, `make silver`), executados no GCP.
 - [x] `quality/runner.py` + regras bloqueantes da Silver + staging antes de publicar;
   executado (51 regras em `ops.qualidade`) e falha demonstrada.
-- [~] `ops.execucoes` gravada pelo orquestrador (`pipeline/orquestrador.py`, uma linha por
-  tabela; hoje só com etapas da Bronze).
+- [x] `ops.execucoes` gravada pelo orquestrador (`pipeline/orquestrador.py`), uma linha por
+  tabela em Bronze, Silver, Gold e streaming.
 
 ### Fase 3 — Gold, streaming e monitoramento
 
@@ -417,7 +417,7 @@ Legenda: `[x]` feito · `[~]` código pronto, falta rodar no GCP / gerar evidên
   `docs/perfil/medicoes_custo.json`) e projeção para a cadência de produção.
 - [x] README com todas as seções exigidas, usando "planejado" para o que não foi feito (falta só o link do vídeo).
 - [x] Diagrama (Mermaid, no README) refletindo só o implementado.
-- [ ] Pasta `evidencias/` completa: job IDs, contagens, prints, falha demonstrada, e-mail de
+- [x] Pasta `evidencias/` completa: job IDs, contagens, prints, falha demonstrada, e-mail de
   alerta.
 - [ ] Teste de clone limpo.
 - [ ] Vídeo de até 5 min: problema, arquitetura, valor, uso em IA; números iguais aos do
@@ -631,3 +631,13 @@ match, divergências de chaves, tamanhos de tabela, etc.).
   - **Assinatura BigQuery do Pub/Sub:** US$ 50/TiB, sem cota gratuita, separada da
     publicação (US$ 40/TiB, 10 GiB grátis).
   - **Nova projeção:** ≈ US$ 5,62/mês sem cota gratuita e ≈ US$ 0,38 com ela.
+- **2026-11-03 — revisão do README:**
+  - **Tempo verbal:** trechos no futuro sobre coisas já feitas (Silver, diretório, origem
+    do streaming) passaram para o presente.
+  - **Demonstração de falha:** 7 regras aprovadas, e não 8.
+  - **Alerta:** toda exceção que encerra o processo vira CRITICAL.
+  - **`SELECT *`:** a afirmação passou a ser exata; ele aparece só sobre CTEs e tabelas do
+    projeto.
+  - **`except Exception`:** os 4 casos estão explicados no README.
+  - **Sumário e nota do alerta:** sumário com links no topo; nota sobre a demora do alerta
+    depois de criado.
