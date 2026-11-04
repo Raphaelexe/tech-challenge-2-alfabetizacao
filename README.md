@@ -8,7 +8,7 @@ falha.
 
 **Integrantes:** Halena Kulmann Duarte e Raphael Luciani
 
-**Vídeo executivo:** _link a incluir_
+**Vídeo executivo:** [assistir no Google Drive](https://drive.google.com/file/d/183St0DmmJbZ6avJPffRZWJHW3l-GdR2x/view?usp=sharing)
 
 | Resultado | Onde ver |
 | --- | --- |

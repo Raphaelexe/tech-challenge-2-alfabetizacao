@@ -356,7 +356,7 @@ tech-challenge-alfabetizacao/
 
 ### Checklist de clone limpo (fazer antes de entregar)
 
-- [ ] Clonar em outra pasta, criar `.env` a partir do exemplo e rodar só o que o README manda.
+- [x] Clonar em outra pasta, criar `.env` a partir do exemplo e rodar só o que o README manda (feito em outro computador).
 - [x] Todo caminho citado no README existe com o mesmo nome (conferido em 03/11/2026).
 - [x] `requirements.txt` com versões fixadas.
 - [x] Nenhum ID de projeto ou bucket fixo fora de `config/settings.py` e `.env` (só aparece no log de evidência).
@@ -415,13 +415,13 @@ Legenda: `[x]` feito · `[~]` código pronto, falta rodar no GCP / gerar evidên
 
 - [x] Tabela de custo preenchida com números medidos (`scripts/medir_custos.py`,
   `docs/perfil/medicoes_custo.json`) e projeção para a cadência de produção.
-- [x] README com todas as seções exigidas, usando "planejado" para o que não foi feito (falta só o link do vídeo).
+- [x] README com todas as seções exigidas, usando "planejado" para o que não foi feito (inclusive o link do vídeo).
 - [x] Diagrama (Mermaid, no README) refletindo só o implementado.
 - [x] Pasta `evidencias/` completa: job IDs, contagens, prints, falha demonstrada, e-mail de
   alerta.
-- [ ] Teste de clone limpo.
-- [ ] Vídeo de até 5 min: problema, arquitetura, valor, uso em IA; números iguais aos do
-  repositório e gráficos com eixos rotulados.
+- [x] Teste de clone limpo (feito em outro computador).
+- [x] Vídeo de até 5 min: problema, arquitetura, valor, uso em IA; números iguais aos do
+  repositório e gráficos com eixos rotulados ([link](https://drive.google.com/file/d/183St0DmmJbZ6avJPffRZWJHW3l-GdR2x/view?usp=sharing)).
 
 ### Divisão sugerida (grupo de 4–5)
 
@@ -641,3 +641,5 @@ match, divergências de chaves, tamanhos de tabela, etc.).
   - **`except Exception`:** os 4 casos estão explicados no README.
   - **Sumário e nota do alerta:** sumário com links no topo; nota sobre a demora do alerta
     depois de criado.
+- **2026-11-03 — teste de clone limpo:** feito pelo grupo em outro computador, seguindo só
+  o README.
